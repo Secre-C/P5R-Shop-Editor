@@ -1,0 +1,249 @@
+﻿<Window x:Class="Shop_Editor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Shop_Editor"
+        mc:Ignorable="d"
+        Title="P5/R Shop Editor" Height="600" Width="1024" Icon="/itemshop.png" Background="#202020" Foreground="#fff" FontWeight="Bold">
+
+    <Border Padding="20">
+        <StackPanel>
+            <!--Shop and Item Selection-->
+            <Grid>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
+
+                <!--Game Version-->
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Game Version" />
+                    <ComboBox x:Name="GameVersionComboBox" SelectionChanged="GameVersionComboBox_SelectionChanged" SelectedIndex="0" Background="#121212" Margin="0 0 20 0" Grid.Column="0" >
+                        <ComboBoxItem>Royal</ComboBoxItem>
+                        <ComboBoxItem>Vanilla</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+
+                <!--Shop Selection-->
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Shop Selection" Foreground="#fff"/>
+                    <ComboBox x:Name="ShopSelectionComboBox" SelectionChanged="ShopSelectionComboBox_SelectionChanged" SelectedIndex="0" Margin="0 0 0 0" Grid.Column="0" />
+                </StackPanel>
+
+                <!--Item Selection-->
+                <StackPanel Grid.Column="2">
+                    <TextBlock Margin="20 0 0 0" Text="Item Selection" Foreground="#fff"/>
+                    <ComboBox x:Name="ItemSelectionComboBox" SelectionChanged="ItemSelectionComboBox_SelectionChanged" SelectedIndex="0" Margin="20 0 0 0" />
+                </StackPanel>
+
+            </Grid>
+
+            <!--Shop Properties-->
+            <TextBlock Text="Shop Properties" Margin="0 20" FontSize="25" HorizontalAlignment="Center" Foreground="#fff"/>
+
+            <Grid Margin="100 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
+
+                <!--Shop Name-->
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Shop Name" Foreground="#fff"/>
+                    <TextBox x:Name="ShopNameTextBox" Margin="0 0 15 0" Height="21.96"/>
+                </StackPanel>
+
+                <!--Shop ID-->
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Shop ID" Foreground="#fff"/>
+                    <TextBox x:Name="ShopIDTextBox" IsReadOnly ="True" Margin="0 0 15 0" Background="#eee" Height="21.96"/>
+                </StackPanel>
+
+                <!--Number of Items in shop-->
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Number of Items" Foreground="#fff"/>
+                    <TextBox x:Name="NumOfItemsTextBox" IsReadOnly="True" Margin="0 0 15 0" Background="#eee" Height="21.96" />
+                </StackPanel>
+
+            </Grid>
+
+            <!--Item Entry Properties-->
+            <TextBlock Text="Item Entry Properties" Margin="0 40 0 20" FontSize="25" HorizontalAlignment="Center" Foreground="#fff" />
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <!--Item Category-->
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Item Category" Foreground="#fff"/>
+                    <ComboBox x:Name="ItemCategoryComboBox" SelectionChanged="ItemCategoryComboBox_SelectionChanged" SelectedIndex="0" Margin="0 0 15 0">
+                        <ComboBoxItem>Melee Weapons</ComboBoxItem>
+                        <ComboBoxItem>Armor</ComboBoxItem>
+                        <ComboBoxItem>Accessories</ComboBoxItem>
+                        <ComboBoxItem>Consumables</ComboBoxItem>
+                        <ComboBoxItem>Key Items</ComboBoxItem>
+                        <ComboBoxItem>Materials</ComboBoxItem>
+                        <ComboBoxItem>Skill Cards</ComboBoxItem>
+                        <ComboBoxItem>Outfits</ComboBoxItem>
+                        <ComboBoxItem>Ranged Weapons</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+
+                <!--Item ID-->
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Item ID" Foreground="#fff"/>
+                    <ComboBox x:Name="ItemIDComboBox" Margin="0 0 15 0" Height="21.96"/>
+                </StackPanel>
+
+                <!--Availability Start Day-->
+                <StackPanel Grid.Column="3">
+                    <TextBlock Text="Start Day" FontWeight="Bold"/>
+                    <TextBox x:Name="StartDayTextBox" Text="1" PreviewTextInput="StartDayValidationTextBox" Margin="0 0 15 0" Height="21.96" />
+                </StackPanel>
+
+                <!--Availability Start Month-->
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Start Month" FontWeight="Bold"/>
+                    <ComboBox SelectionChanged="StartMonthBox_SelectionChanged" x:Name="StartMonthBox" SelectedIndex="0" Margin="0 0 15 0">
+                        <ComboBoxItem>January</ComboBoxItem>
+                        <ComboBoxItem>February</ComboBoxItem>
+                        <ComboBoxItem>March</ComboBoxItem>
+                        <ComboBoxItem>April</ComboBoxItem>
+                        <ComboBoxItem>May</ComboBoxItem>
+                        <ComboBoxItem>June</ComboBoxItem>
+                        <ComboBoxItem>July</ComboBoxItem>
+                        <ComboBoxItem>August</ComboBoxItem>
+                        <ComboBoxItem>September</ComboBoxItem>
+                        <ComboBoxItem>October</ComboBoxItem>
+                        <ComboBoxItem>November</ComboBoxItem>
+                        <ComboBoxItem>December</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+
+                <!--Availability End Day-->
+                <StackPanel Grid.Column="5">
+                    <TextBlock Text="End Day" FontWeight="Bold"/>
+                    <TextBox x:Name="EndDayTextBox" Text="1" PreviewTextInput="EndDayValidationTextBox" Margin="0 0 15 0" Height="21.96" />
+                </StackPanel>
+
+                <!--Availability End Month-->
+                <StackPanel Grid.Column="4">
+                    <TextBlock Text="End Month" FontWeight="Bold"/>
+                    <ComboBox SelectionChanged="EndMonthBox_SelectionChanged" x:Name="EndMonthBox" SelectedIndex="0" Margin="0 0 15 0">
+                        <ComboBoxItem>January</ComboBoxItem>
+                        <ComboBoxItem>February</ComboBoxItem>
+                        <ComboBoxItem>March</ComboBoxItem>
+                        <ComboBoxItem>April</ComboBoxItem>
+                        <ComboBoxItem>May</ComboBoxItem>
+                        <ComboBoxItem>June</ComboBoxItem>
+                        <ComboBoxItem>July</ComboBoxItem>
+                        <ComboBoxItem>August</ComboBoxItem>
+                        <ComboBoxItem>September</ComboBoxItem>
+                        <ComboBoxItem>October</ComboBoxItem>
+                        <ComboBoxItem>November</ComboBoxItem>
+                        <ComboBoxItem>December</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+
+            </Grid>
+            <!--Item Entry Part 2-->
+            <Grid Margin="0 30">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!--Price Percentage-->
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Price Percentage" FontWeight="Bold"/>
+                    <TextBox x:Name="PricePercentageTextBox" PreviewTextInput="IntValidationTextBox" Margin="0 0 15 0" Height="21.96"/>
+                </StackPanel>
+
+                <!--Unlimited Quantity Checkbox-->
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Unlimited Quantity" HorizontalAlignment="Center"/>
+                    <CheckBox x:Name="UnlimitedQuantityCheckBox" Unchecked="UnlimitedQuantity_Checked" Checked="UnlimitedQuantity_Checked" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!--Quantity-->
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Quantity" FontWeight="Bold"/>
+                    <TextBox x:Name="QuantityTextBox" Text="1"  PreviewTextInput="UByteValidationTextBox" Margin="0 0 15 0" Height="21.96"/>
+                </StackPanel>
+
+                <!--Item Quantity Acquired per unit purchased-->
+                <StackPanel Grid.Column="3">
+                    <TextBlock Text="Amount Acquired Per Unit" />
+                    <TextBox x:Name="AmountPerUnitTextBox" PreviewTextInput="UByteValidationTextBox" Text="1" Margin="0 0 15 0" Height="21.96"/>
+                </StackPanel>
+
+                <!--Required Bitflag-->
+                <StackPanel Grid.Column="4">
+                    <TextBlock Text="Required Bitflag (-1 for none)" FontWeight="Bold"/>
+                    <TextBox x:Name="RequiredBitflagTextBox" PreviewTextInput="IntValidationTextBox" Text="-1" Margin="0 0 15 0" Height="21.96" />
+                </StackPanel>
+
+            </Grid>
+            <!--Add and Remove Items-->
+            <Grid Margin="100 20">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <Button x:Name="AddNewItemButton" Click="AddNewItemButton_Click" Margin="0 0 15 0" Content="Add New Item"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1">
+                    <Button x:Name="RemoveItemButton" Click="RemoveItemButton_Click" Margin="0 0 15 0" Content="Remove Item"/>
+                </StackPanel>
+
+            </Grid>
+
+            <!--Save and Reset-->
+            <Grid Margin="100 20">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <Button x:Name="SaveButton" Click="SaveButton_Click" Margin="0 0 15 0" Content="Save"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1">
+                    <Button Click="Reset_Button_Click" Margin="0 0 15 0" Content="Reset"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <Button x:Name="ResetAllButton" Click="ResetAllButton_Click" Margin="0 0 15 0" Content="Reset All"/>
+                </StackPanel>
+
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width = "*" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="MessageTextBox" FontSize="16" VerticalAlignment="Bottom" IsReadOnly="True" Background="#eee" Foreground="#121212"/>
+            </Grid>
+        </StackPanel>
+    </Border>
+</Window>
