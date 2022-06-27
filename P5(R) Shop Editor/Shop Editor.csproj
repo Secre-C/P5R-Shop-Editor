@@ -9,22 +9,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="itemshop.png" />
-    <None Remove="shopicon.png" />
+    <Compile Remove="P5%28R%29 Shop Editor\**" />
+    <EmbeddedResource Remove="P5%28R%29 Shop Editor\**" />
+    <None Remove="P5%28R%29 Shop Editor\**" />
+    <Page Remove="P5%28R%29 Shop Editor\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="obj\Debug\net6.0-windows\Window1.xaml.cs" />
+    <None Remove="itemshop.png" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Include="obj\Debug\net6.0-windows\Window1.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
 
   <ItemGroup>
@@ -35,7 +31,6 @@
 
   <ItemGroup>
     <Resource Include="itemshop.png" />
-    <Resource Include="shopicon.png" />
   </ItemGroup>
 
 </Project>
