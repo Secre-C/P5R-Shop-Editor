@@ -30,6 +30,7 @@ namespace Shop_Editor
         private bool windowShowFirstTime = true;
         public MainWindow()
         {
+            CreateDirectories();
             InitializeComponent();
             CheckForFtdsOnStartup();
             PopulateShopItemComboBox();
@@ -82,18 +83,18 @@ namespace Shop_Editor
 
         private void ResetAllButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBoxButton button = MessageBoxButton.YesNo;
-            string resetAllPrompt = "This will overwrite the output ftds with the ones from the 'Original' folder. Proceed?";
-            string resetAllPromptCaption = "Reset All";
-            var result = MessageBox.Show(resetAllPrompt, resetAllPromptCaption, button);
-
-            if (result == MessageBoxResult.No) return;
-
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
             if (gameVersionIndex == 0) gameVersion = "Royal";
             else gameVersion = "Vanilla";
+
+            MessageBoxButton button = MessageBoxButton.YesNo;
+            string resetAllPrompt = $"This will overwrite the '{gameVersion}\\Output' ftds with the ones from '{gameVersion}\\Original'. Proceed?";
+            string resetAllPromptCaption = "Reset All";
+            var result = MessageBox.Show(resetAllPrompt, resetAllPromptCaption, button);
+
+            if (result == MessageBoxResult.No) return;
 
             string shopItemftdOriginal = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopItemTable.ftd");
             string shopNameftdOriginal = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopName.ftd");
@@ -105,7 +106,7 @@ namespace Shop_Editor
             File.Copy(shopNameftdOriginal, shopNameftdOutput, true);
 
             ResetStuff();
-            ShowMessage($"{gameVersion} Output ftds have been overwritten by the Original ones!");
+            ShowMessage($"All {gameVersion} items have been reverted to their original state!");
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -281,7 +282,8 @@ namespace Shop_Editor
 
             if (!File.Exists(Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopItemTable.ftd") || !File.Exists(Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopName.ftd"))
             {
-                MessageBox.Show("Missing Ftds! Make sure both fclPublicShopItemTable.ftd and fclPublicShopName.ftd have been copied to the Original\\{gameVersion} Folder!");
+                string missingftdMessage = "Missing Ftds! Make sure both fclPublicShopItemTable.ftd and fclPublicShopName.ftd have been copied to the Original\\{gameVersion} Folder!";
+                MessageBox.Show(missingftdMessage, "Missing Ftds");
                 if (gameVersion == "Royal") gameVersionIndex = 1;
                 else gameVersionIndex = 0;
 
@@ -483,7 +485,8 @@ namespace Shop_Editor
             {
                 if (!File.Exists(Directory.GetCurrentDirectory() + "\\Original\\Vanilla\\fclPublicShopItemTable.ftd") || !File.Exists(Directory.GetCurrentDirectory() + "\\Original\\Vanilla\\fclPublicShopName.ftd"))
                 {
-                    MessageBox.Show("Missing Ftds! Make sure both fclPublicShopItemTable.ftd and fclPublicShopName.ftd have been copied to the appropriate folder inside the 'Original' folder");
+                    string missingftdMessage = "Missing Ftds! Make sure both your fclPublicShopItemTable.ftd and fclPublicShopName.ftd files from your game of choice have been copied to the appropriate folder inside the 'Original' folder";
+                    MessageBox.Show(missingftdMessage, "Missing Ftds");
                     Environment.Exit(1);
                 }
                 else
@@ -741,6 +744,41 @@ namespace Shop_Editor
                 int itemID = itemIndex - (itemCategory * 0x1000);
 
                 return itemID;
+            }
+        }
+
+        private void CreateDirectories()
+        {
+            string currentDirectory = Directory.GetCurrentDirectory();
+            bool directoryCreated = false;
+
+            if (!Directory.Exists($"{currentDirectory}\\Original\\Royal"))
+            {
+                Directory.CreateDirectory($"{currentDirectory}\\Original\\Royal");
+                directoryCreated = true;
+            }
+
+            if (!Directory.Exists($"{currentDirectory}\\Output\\Royal"))
+            {
+                Directory.CreateDirectory($"{currentDirectory}\\Output\\Royal");
+                directoryCreated = true;
+            }
+
+            if (!Directory.Exists($"{currentDirectory}\\Original\\Vanilla"))
+            {
+                Directory.CreateDirectory($"{currentDirectory}\\Original\\Vanilla");
+                directoryCreated = true;
+            }
+
+            if (!Directory.Exists($"{currentDirectory}\\Output\\Vanilla"))
+            {
+                Directory.CreateDirectory($"{currentDirectory}\\Output\\Vanilla");
+                directoryCreated = true;
+            }
+
+            if (directoryCreated)
+            {
+                MessageBox.Show("New Directories Created!", "Created Directories");
             }
         }
 

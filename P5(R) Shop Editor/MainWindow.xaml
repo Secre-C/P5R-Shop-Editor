@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Shop_Editor"
         mc:Ignorable="d"
-        Title="P5/R Shop Editor" Height="600" Width="1024" Icon="/itemshop.png" Background="#202020" Foreground="#fff" FontWeight="Bold">
+        Title="P5/R Shop Editor" ResizeMode="CanMinimize" Height="600" Width="1024" Icon="/itemshop.png" Background="#202020" Foreground="#fff" FontWeight="Bold">
 
     <Border Padding="20">
         <StackPanel>
@@ -60,13 +60,13 @@
                 <!--Shop ID-->
                 <StackPanel Grid.Column="1">
                     <TextBlock Text="Shop ID" Foreground="#fff"/>
-                    <TextBox x:Name="ShopIDTextBox" IsReadOnly ="True" Margin="0 0 15 0" Background="#eee" Height="21.96"/>
+                    <TextBox x:Name="ShopIDTextBox" IsReadOnly ="True" Margin="0 0 15 0" Background="#202020" Foreground="#fff" Height="21.96"/>
                 </StackPanel>
 
                 <!--Number of Items in shop-->
                 <StackPanel Grid.Column="2">
                     <TextBlock Text="Number of Items" Foreground="#fff"/>
-                    <TextBox x:Name="NumOfItemsTextBox" IsReadOnly="True" Margin="0 0 15 0" Background="#eee" Height="21.96" />
+                    <TextBox x:Name="NumOfItemsTextBox" IsReadOnly="True" Margin="0 0 15 0" Background="#202020" Foreground="#fff" Height="21.96" />
                 </StackPanel>
 
             </Grid>
@@ -242,7 +242,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width = "*" />
                 </Grid.ColumnDefinitions>
-                <TextBox x:Name="MessageTextBox" FontSize="16" VerticalAlignment="Bottom" IsReadOnly="True" Background="#eee" Foreground="#121212"/>
+                <TextBox x:Name="MessageTextBox" FontSize="16" VerticalAlignment="Bottom" IsReadOnly="True" Background="#202020" Foreground="#fff" />
             </Grid>
         </StackPanel>
     </Border>
