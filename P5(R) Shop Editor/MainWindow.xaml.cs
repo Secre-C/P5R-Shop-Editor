@@ -806,32 +806,7 @@ namespace Shop_Editor
             string shopItemftdOutput = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
             string shopItemftdOriginal = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopItemTable.ftd");
 
-            int outputEntryCount;
-            int originalEntryCount;
-
-            List<int> outputOffsets = FtdParse.FindShopOffsetsandCount(shopItemftdOutput, "ShopOffsets");
-            List<int> originalOffsets = FtdParse.FindShopOffsetsandCount(shopItemftdOriginal, "ShopOffsets");
-
-            using (BinaryObjectReader P5FTDFile = new(shopItemftdOutput, Endianness.Big, Encoding.GetEncoding(932)))
-            {
-                P5FTDFile.AtOffset(40);
-                outputEntryCount = P5FTDFile.ReadInt32();
-            }
-
-            using (BinaryObjectReader P5FTDFile = new(shopItemftdOriginal, Endianness.Big, Encoding.GetEncoding(932)))
-            {
-                P5FTDFile.AtOffset(40);
-                originalEntryCount = P5FTDFile.ReadInt32();
-            }
-
-            if (outputEntryCount == originalEntryCount && Enumerable.SequenceEqual(outputOffsets, originalOffsets))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return new FileInfo(shopItemftdOutput).Length == new FileInfo(shopItemftdOriginal).Length;
         }
         private void ShowMessage(string message)
         {
@@ -840,11 +815,40 @@ namespace Shop_Editor
 
         private bool CheckForChanges()
         {
-            bool changes = CheckItemChanges();
-            return changes;
+            return CheckItemChanges() || CheckNameChanges() == false;
         }
 
-        private bool CheckItemChanges()
+        private bool CheckNameChanges() //returns true if changes were made, false if not
+        {
+            string gameVersion;
+            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
+            int nameLength;
+
+            if (gameVersionIndex == 0)
+            {
+                gameVersion = "Royal";
+                nameLength = 48;
+            }
+            else
+            {
+                gameVersion = "Vanilla";
+                nameLength = 32;
+            }
+
+            string shopNameftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd");
+
+            int shopID = ShopSelectionComboBox.SelectedIndex;
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            using (BinaryObjectReader P5FTDFile = new BinaryObjectReader(shopNameftd, Endianness.Big, Encoding.GetEncoding(932)))
+            {
+                P5FTDFile.AtOffset(48 + (shopID * nameLength));
+                string originalName = P5FTDFile.ReadString(StringBinaryFormat.FixedLength, nameLength);
+                return originalName == ShopNameTextBox.Text;
+            }
+        }
+
+        private bool CheckItemChanges() //returns true if changes were made, false if not
         {
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
