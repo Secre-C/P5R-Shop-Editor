@@ -15,10 +15,18 @@ namespace shoplogic
     {
         public static List<string> MakeShopItemList(int shopInput, int gameVersionIndex)
         {
-            string gameVersion;
-            if (gameVersionIndex == 0) gameVersion = "Royal";
-            else gameVersion = "Vanilla";
-            string shopItemftd = Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd";
+            string tempFile;
+
+            if (gameVersionIndex == 0)
+            {
+                tempFile = MainWindow.tempFileR;
+            }
+            else
+            {
+                tempFile = MainWindow.tempFileV;
+            }
+
+            string shopItemftd = tempFile;
 
             List<int> shopItemCountList = FtdParse.FindShopOffsetsandCount(shopItemftd, "ItemCount");
             List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(shopItemftd, "ShopOffsets");

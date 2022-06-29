@@ -230,7 +230,7 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1">
-                    <Button Click="Reset_Button_Click" Margin="0 0 15 0" Content="Reset"/>
+                    <Button Click="ResetButton_Click" Margin="0 0 15 0" Content="Reset"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2">

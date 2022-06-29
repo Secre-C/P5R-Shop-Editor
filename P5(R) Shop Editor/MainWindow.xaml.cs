@@ -28,6 +28,9 @@ namespace Shop_Editor
     public partial class MainWindow : Window
     {
         private bool windowShowFirstTime = true;
+        public static string tempFileV = "";
+        public static string tempFileR = "";
+
         public MainWindow()
         {
             CreateDirectories();
@@ -75,10 +78,37 @@ namespace Shop_Editor
             return int.TryParse(str, out int i) && i >= 1 && i <= dayArray[monthIndex];
         }
 
-        private void Reset_Button_Click(object sender, RoutedEventArgs e)
+        private void ResetButton_Click(object sender, RoutedEventArgs e)
         {
+            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
+            string gameVersion;
+            string tempFile;
+
+            if (gameVersionIndex == 0)
+            {
+                gameVersion = "Royal";
+                tempFile = tempFileR;
+            }
+            else
+            {
+                gameVersion = "Vanilla";
+                tempFile = tempFileV;
+            }
+
+            if (!CheckForChanges() && CompareEntryCounts())
+            {
+                ShowMessage("No new changes have been made!");
+                return;
+            }
+
+            if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd"))
+            {
+                File.Copy(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd", tempFile, true);
+            }
+
             ResetStuff();
-            ShowMessage("Changes to the selected Item have been reverted to their last saved state!");
+
+            ShowMessage("Unsaved Changes have been reverted!");
         }
 
         private void ResetAllButton_Click(object sender, RoutedEventArgs e)
@@ -86,60 +116,76 @@ namespace Shop_Editor
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
-            if (gameVersionIndex == 0) gameVersion = "Royal";
-            else gameVersion = "Vanilla";
+            string tempFile;
 
-            MessageBoxButton button = MessageBoxButton.YesNo;
-            string resetAllPrompt = $"This will overwrite the '{gameVersion}\\Output' ftds with the ones from '{gameVersion}\\Original'. Proceed?";
-            string resetAllPromptCaption = "Reset All";
-            var result = MessageBox.Show(resetAllPrompt, resetAllPromptCaption, button);
-
-            if (result == MessageBoxResult.No) return;
+            if (gameVersionIndex == 0)
+            {
+                gameVersion = "Royal";
+                tempFile = tempFileR;
+            }
+            else
+            {
+                gameVersion = "Vanilla";
+                tempFile = tempFileV;
+            }
 
             string shopItemftdOriginal = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopItemTable.ftd");
             string shopNameftdOriginal = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopName.ftd");
 
-            string shopItemftdOutput = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
             string shopNameftdOutput = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd");
 
-            File.Copy(shopItemftdOriginal, shopItemftdOutput, true);
+            File.Copy(shopItemftdOriginal, tempFile, true);
             File.Copy(shopNameftdOriginal, shopNameftdOutput, true);
 
             ResetStuff();
-            ShowMessage($"All {gameVersion} items have been reverted to their original state!");
+            ShowMessage($"All items have been reverted to their original state!");
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
+            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
+
+            int nameLength = 48;
+            
+            if (gameVersionIndex == 1)
+            {
+                nameLength = 32;
+            }
+
             string gameVersion = GameVersionComboBox.Text;
             bool isStructureIntact = CompareEntryCounts();
 
-            if (!CheckForChanges())
+            if (!CheckForChanges() && CompareEntryCounts())
             {
-                ShowMessage("No Changes have been made!");
+                ShowMessage("No new changes have been made!");
                 return;
             }
 
-            SaveItemftd("Overwrite");
+            SaveItemftd();
             SaveNameftd();
 
             if (isStructureIntact)
             {
-                ShowMessage($"Created Binary Patch file (.bp) and Saved Changes to Output\\{gameVersion}!");
-
-                if (!File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\shop_changes.bp"))
+                if (WriteBinaryPatch(40))
                 {
-                    File.Create(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\shop_changes.bp");
+                    ShowMessage($"Created Binary Patch file (.bp) and saved changes to 'Output\\{gameVersion}'!");
                 }
             }
             else
             {
-                ShowMessage($"Changes Saved to Output\\{gameVersion}!");
+                ShowMessage($"Changes Saved to 'Output\\{gameVersion}'!");
 
-                if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\shop_changes.bp"))
+                if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Items.bp"))
                 {
-                    File.Delete(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\shop_changes.bp");
+                    File.Delete(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Items.bp");
                 }
+            }
+
+            bool isNameChanged = CheckNameChanges();
+
+            if (isNameChanged)
+            {
+                WriteBinaryPatch(nameLength);
             }
 
             ResetStuff();
@@ -147,24 +193,15 @@ namespace Shop_Editor
 
         private void AddNewItemButton_Click(object sender, RoutedEventArgs e)
         {
-            bool isNewItemDuplicate = Convert.ToInt32(NumOfItemsTextBox.Text) > 0;
-            SaveItemftd("Add");
+            AddItemSlot();
+
+            ItemSelectionComboBox.SelectedIndex += 1;
+
             ItemSelectionComboBox_SelectionChanged(null, null);
             PopulateShopInformation();
             PopulateShopItemComboBox();
-            if (isNewItemDuplicate)
-            {
-                string gameVersion = GameVersionComboBox.Text;
-                string itemAddMessage = $"Created duplicate of selected shop item! Changes have been saved to Original\\{gameVersion}.";
-                ShowMessage(itemAddMessage);
-            }
-            else
-            {
-                string gameVersion = GameVersionComboBox.Text;
-                string itemAddMessage = $"Created New item! Changes have been saved to Original\\{gameVersion}.";
-                ShowMessage(itemAddMessage);
 
-            }
+            ShowMessage("Created New item!");
         }
 
         private void RemoveItemButton_Click(object sender, RoutedEventArgs e)
@@ -175,18 +212,35 @@ namespace Shop_Editor
                 ShowMessage(deletePrompt);
                 return;
             }
-            string gameVersion = GameVersionComboBox.Text;
-            SaveItemftd("Remove");
+
+            string itemDeleteMessage = $"Selected item has been removed!";
+
+            RemoveItemSlot();
+            ItemSelectionComboBox.SelectedIndex -= 1;
+
             ItemSelectionComboBox_SelectionChanged(null, null);
+
             PopulateShopInformation();
             PopulateShopItemComboBox();
-            ShowMessage($"Selected item has been removed! Changes have been saved to Original\\{gameVersion}.");
+
+            ShowMessage(itemDeleteMessage);
         }
         private void ItemSelectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string gameVersion = GameVersionComboBox.Text;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
-            string shopItemftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
+
+            string tempFile;
+
+            if (gameVersionIndex == 0)
+            {
+                tempFile = tempFileR;
+            }
+            else
+            {
+                tempFile = tempFileV;
+            }
+
+            string shopItemftd = tempFile;
 
             int shopInput = ShopSelectionComboBox.SelectedIndex;
 
@@ -289,13 +343,17 @@ namespace Shop_Editor
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
+            string tempFile;
+
             if (gameVersionIndex == 0)
             {
                 gameVersion = "Royal";
+                tempFile = tempFileR;
             }
             else
             {
                 gameVersion = "Vanilla";
+                tempFile = tempFileV;
             }
 
             if (!File.Exists(Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopItemTable.ftd") || !File.Exists(Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopName.ftd"))
@@ -310,7 +368,7 @@ namespace Shop_Editor
                 return;
             }
             //get some variables from other ftd
-            string shopItemftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
+            string shopItemftd = tempFile;
             List<int> shopCountList = FtdParse.FindShopOffsetsandCount(shopItemftd, "shopCount");
             int shopCount = shopCountList[0];
 
@@ -345,6 +403,7 @@ namespace Shop_Editor
             {
                 StartDayTextBox.Text = "1";
             }
+
             if (dayArray[monthIndex] < Convert.ToInt32(StartDayTextBox.Text))
             {
               StartDayTextBox.Text = Convert.ToString(dayArray[monthIndex]);
@@ -373,8 +432,20 @@ namespace Shop_Editor
 
         private void ShopSelectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string gameVersion = GameVersionComboBox.Text;
-            string shopItemftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
+            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
+
+            string tempFile;
+
+            if (gameVersionIndex == 0)
+            {
+                tempFile = tempFileR;
+            }
+            else
+            {
+                tempFile = tempFileV;
+            }
+
+            string shopItemftd = tempFile;
 
             var shopIndex = ShopSelectionComboBox.SelectedIndex;
 
@@ -423,16 +494,26 @@ namespace Shop_Editor
 
         private void PopulateShopInformation()
         {
-            string gameVersion = GameVersionComboBox.Text;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
-            string shopItemftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
+
+            string tempFile;
+
+            if (gameVersionIndex == 0)
+            {
+                tempFile = tempFileR;
+            }
+            else
+            {
+                tempFile = tempFileV;
+            }
+
+            string shopItemftd = tempFile;
 
             var shopIndex = ShopSelectionComboBox.SelectedIndex;
 
             List<int> itemCount = FtdParse.FindShopOffsetsandCount(shopItemftd, "ItemCount");
 
             NumOfItemsTextBox.Text = itemCount[shopIndex].ToString();
-            ShopNameTextBox.Text = NameParse.PrintShopName(shopIndex, gameVersionIndex);
             ShopIDTextBox.Text = ShopSelectionComboBox.SelectedIndex.ToString();
         }
         private void PopulateShopItemComboBox()
@@ -509,24 +590,31 @@ namespace Shop_Editor
             }
             else
             {
-                if (!File.Exists(Directory.GetCurrentDirectory() + "\\Output\\Royal\\fclPublicShopItemTable.ftd"))
+                if (File.Exists("\\Output\\Royal\\fclPublicShopItemTable.ftd"))
                 {
-                    File.Copy(Directory.GetCurrentDirectory() + "\\Original\\Royal\\fclPublicShopItemTable.ftd", Directory.GetCurrentDirectory() + "\\Output\\Royal\\fclPublicShopItemTable.ftd");
+                    File.Copy(Directory.GetCurrentDirectory() + "\\Output\\Royal\\fclPublicShopItemTable.ftd", tempFileR, true);
+                }
+                else
+                {
+                    File.Copy(Directory.GetCurrentDirectory() + "\\Original\\Royal\\fclPublicShopItemTable.ftd", tempFileR, true);
                 }
 
                 if (!File.Exists(Directory.GetCurrentDirectory() + "\\Output\\Royal\\fclPublicShopName.ftd"))
                 {
                     File.Copy(Directory.GetCurrentDirectory() + "\\Original\\Royal\\fclPublicShopName.ftd", Directory.GetCurrentDirectory() + "\\Output\\Royal\\fclPublicShopName.ftd");
                 }
-
             }
 
             if (File.Exists(Directory.GetCurrentDirectory() + "\\Original\\Vanilla\\fclPublicShopItemTable.ftd") 
                 && File.Exists(Directory.GetCurrentDirectory() + "\\Original\\Vanilla\\fclPublicShopName.ftd"))
             {
-                if (!File.Exists(Directory.GetCurrentDirectory() + "\\Output\\Vanilla\\fclPublicShopItemTable.ftd"))
+                if (File.Exists("\\Output\\Vanilla\\fclPublicShopItemTable.ftd"))
                 {
-                    File.Copy(Directory.GetCurrentDirectory() + "\\Original\\Vanilla\\fclPublicShopItemTable.ftd", Directory.GetCurrentDirectory() + "\\Output\\Vanilla\\fclPublicShopItemTable.ftd");
+                    File.Copy(Directory.GetCurrentDirectory() + "\\Output\\Vanilla\\fclPublicShopItemTable.ftd", tempFileV, true);
+                }
+                else
+                {
+                    File.Copy(Directory.GetCurrentDirectory() + "\\Original\\Vanilla\\fclPublicShopItemTable.ftd", tempFileV, true);
                 }
 
                 if (!File.Exists(Directory.GetCurrentDirectory() + "\\Output\\Vanilla\\fclPublicShopName.ftd"))
@@ -539,18 +627,26 @@ namespace Shop_Editor
             else ShopNameTextBox.MaxLength = 32;
         }
 
-        private void SaveItemftd(string writeMode) //"Add", "Remove", or "Overwrite"
+        private void SaveItemftd()
         {
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
+            string tempFile;
 
-            if (gameVersionIndex == 0) gameVersion = "Royal";
-            else gameVersion = "Vanilla";
+            if (gameVersionIndex == 0)
+            {
+                gameVersion = "Royal";
+                tempFile = tempFileR;
+            }
+            else
+            {
+                gameVersion = "Vanilla";
+                tempFile = tempFileV;
+            }
 
             string shopItemftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
-            string tempshopItemftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTabletemp.ftd");
 
-            List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(shopItemftd, "ShopOffsets");
+            List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(tempFile, "ShopOffsets");
 
             int shopID = Convert.ToInt32(ShopIDTextBox.Text);
             int shopItemIndex = ItemSelectionComboBox.SelectedIndex;
@@ -558,124 +654,60 @@ namespace Shop_Editor
             int itemOffset = shopOffsets[shopID] + (shopItemIndex * 40);
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            using (BinaryObjectReader P5FTDFile = new (shopItemftd, Endianness.Big, Encoding.GetEncoding(932)))
+            using (BinaryObjectReader P5FTDFile = new (tempFile, Endianness.Big, Encoding.GetEncoding(932)))
             {
-                using (BinaryObjectWriter P5NewFTDFile = new (tempshopItemftd, Endianness.Big, Encoding.GetEncoding(932)))
+                using (BinaryObjectWriter P5NewFTDFile = new (shopItemftd, Endianness.Big, Encoding.GetEncoding(932)))
                 {
                     for (int i = 0; i < itemOffset; i++)
                     {
                         P5NewFTDFile.Write(P5FTDFile.ReadByte());
                     }
+                    P5FTDFile.ReadByte(); //field0
+                    if (UnlimitedQuantityCheckBox.IsChecked == true) P5NewFTDFile.Write((byte)0xFF);
+                    else P5NewFTDFile.Write((byte)0);
 
-                    if (writeMode == "Remove")
-                    {
-                        for (int i = 0; i < 40; i++)
-                        {
-                            P5FTDFile.ReadByte();
-                        }
+                    P5NewFTDFile.Write(P5FTDFile.ReadByte()); //field1
 
-                        long currentPosition = P5FTDFile.Position;
+                    P5FTDFile.ReadUInt16(); //item id
+                    ushort newItemID = (ushort)((ItemCategoryComboBox.SelectedIndex * 0x1000) + ItemIDComboBox.SelectedIndex);
+                    P5NewFTDFile.Write(newItemID);
 
-                        P5NewFTDFile.At(8, SeekOrigin.Begin);
-                        P5FTDFile.AtOffset(8); //Filesize
-                        P5NewFTDFile.Write(P5FTDFile.ReadUInt32() - 40); //Subtract Filesize field by 40
+                    P5FTDFile.ReadByte(); //Amount acquired per unit purchased
+                    P5NewFTDFile.Write(Convert.ToByte(AmountPerUnitTextBox.Text));
 
-                        P5NewFTDFile.At(36, SeekOrigin.Begin);
-                        P5FTDFile.AtOffset(36); //Datasize
-                        P5NewFTDFile.Write(P5FTDFile.ReadUInt32() - 40); //Subtract Datasize field by 40
-                        P5NewFTDFile.Write(P5FTDFile.ReadUInt32() - 1); //Subtract Entry Count field by 1
+                    P5FTDFile.ReadByte(); //start month
+                    P5NewFTDFile.Write((byte)(StartMonthBox.SelectedIndex + 1));
 
-                        P5FTDFile.AtOffset(currentPosition);
-                        P5NewFTDFile.At(0, SeekOrigin.End);
-                    }
-                    else if (writeMode == "Add")
-                    {
-                        long currentPosition = P5FTDFile.Position;
-                        int numOfItems = Convert.ToInt32(NumOfItemsTextBox.Text);
-                        if (numOfItems < 1)
-                        {
-                            for (int i = 0; i < 40; i++) //add in end of last shop
-                            {
-                                P5NewFTDFile.Write(P5FTDFile.ReadByte());
-                            }
+                    P5FTDFile.ReadByte(); //start day
+                    P5NewFTDFile.Write(Convert.ToByte(StartDayTextBox.Text));
 
-                            P5FTDFile.AtOffset(48);
+                    P5FTDFile.ReadByte(); //end month
+                    P5NewFTDFile.Write((byte)(EndMonthBox.SelectedIndex + 1));
 
-                            for (int i = 0; i < 40; i++)
-                            {
-                                P5NewFTDFile.Write(P5FTDFile.ReadByte());
-                            }
-                            currentPosition += 40;
-                        }
-                        else
-                        {
-                            for (int i = 0; i < 40; i++)
-                            {
-                                P5NewFTDFile.Write(P5FTDFile.ReadByte());
-                            }
-                        }
-                       
-                        P5NewFTDFile.At(8, SeekOrigin.Begin);
-                        P5FTDFile.AtOffset(8); //Filesize
-                        P5NewFTDFile.Write(P5FTDFile.ReadUInt32() + 40); //Subtract Filesize field by 40
+                    P5FTDFile.ReadByte(); //end day
+                    P5NewFTDFile.Write(Convert.ToByte(EndDayTextBox.Text));
 
-                        P5NewFTDFile.At(36, SeekOrigin.Begin);
-                        P5FTDFile.AtOffset(36); //Datasize
-                        P5NewFTDFile.Write(P5FTDFile.ReadUInt32() + 40); //Subtract Datasize field by 40
-                        P5NewFTDFile.Write(P5FTDFile.ReadUInt32() + 1); //Subtract Entry Count field by 1
+                    byte newQuantity = Convert.ToByte(QuantityTextBox.Text); //quantity
+                    P5FTDFile.ReadByte();
+                    P5FTDFile.ReadByte();
+                    P5FTDFile.ReadByte();
+                    P5NewFTDFile.Write(newQuantity);
+                    P5NewFTDFile.Write(newQuantity);
+                    P5NewFTDFile.Write(newQuantity);
 
-                        P5NewFTDFile.At(0, SeekOrigin.End);
-                        P5FTDFile.AtOffset(currentPosition);
-                    }
-                    else
-                    {
-                        P5FTDFile.ReadByte(); //field0
-                        if (UnlimitedQuantityCheckBox.IsChecked == true) P5NewFTDFile.Write((byte)0xFF);
-                        else P5NewFTDFile.Write((byte)0);
+                    P5NewFTDFile.Write(P5FTDFile.ReadInt32());
+                    P5NewFTDFile.Write(P5FTDFile.ReadInt32());
+                    P5NewFTDFile.Write(P5FTDFile.ReadInt32());
 
-                        P5NewFTDFile.Write(P5FTDFile.ReadByte()); //field1
+                    P5FTDFile.ReadUInt32(); //Bitflag requirement
+                    P5NewFTDFile.Write(Convert.ToInt32(RequiredBitflagTextBox.Text));
 
-                        P5FTDFile.ReadUInt16(); //item id
-                        ushort newItemID = (ushort)((ItemCategoryComboBox.SelectedIndex * 0x1000) + ItemIDComboBox.SelectedIndex);
-                        P5NewFTDFile.Write(newItemID);
+                    P5NewFTDFile.Write(P5FTDFile.ReadInt32());
 
-                        P5FTDFile.ReadByte(); //Amount acquired per unit purchased
-                        P5NewFTDFile.Write(Convert.ToByte(AmountPerUnitTextBox.Text));
+                    P5FTDFile.ReadInt32(); //Price Percentage
+                    P5NewFTDFile.Write(Convert.ToInt32(PricePercentageTextBox.Text));
 
-                        P5FTDFile.ReadByte(); //start month
-                        P5NewFTDFile.Write((byte)(StartMonthBox.SelectedIndex + 1));
-
-                        P5FTDFile.ReadByte(); //start day
-                        P5NewFTDFile.Write(Convert.ToByte(StartDayTextBox.Text));
-
-                        P5FTDFile.ReadByte(); //end month
-                        P5NewFTDFile.Write((byte)(EndMonthBox.SelectedIndex + 1));
-
-                        P5FTDFile.ReadByte(); //end day
-                        P5NewFTDFile.Write(Convert.ToByte(EndDayTextBox.Text));
-
-                        byte newQuantity = Convert.ToByte(QuantityTextBox.Text); //quantity
-                        P5FTDFile.ReadByte();
-                        P5FTDFile.ReadByte();
-                        P5FTDFile.ReadByte();
-                        P5NewFTDFile.Write(newQuantity);
-                        P5NewFTDFile.Write(newQuantity);
-                        P5NewFTDFile.Write(newQuantity);
-
-                        P5NewFTDFile.Write(P5FTDFile.ReadInt32());
-                        P5NewFTDFile.Write(P5FTDFile.ReadInt32());
-                        P5NewFTDFile.Write(P5FTDFile.ReadInt32());
-
-                        P5FTDFile.ReadUInt32(); //Bitflag requirement
-                        P5NewFTDFile.Write(Convert.ToInt32(RequiredBitflagTextBox.Text));
-
-                        P5NewFTDFile.Write(P5FTDFile.ReadInt32());
-
-                        P5FTDFile.ReadInt32(); //Price Percentage
-                        P5NewFTDFile.Write(Convert.ToInt32(PricePercentageTextBox.Text));
-
-                        P5NewFTDFile.Write(P5FTDFile.ReadInt32());
-                    }
+                    P5NewFTDFile.Write(P5FTDFile.ReadInt32());
 
                     long remainingSpace = P5FTDFile.Length - P5FTDFile.Position;
 
@@ -685,10 +717,144 @@ namespace Shop_Editor
                     }
                 }
             }
-            File.Copy(tempshopItemftd, shopItemftd, true);
-            File.Delete(tempshopItemftd);
+            File.Copy(shopItemftd, tempFile, true);
         }
 
+        private void AddItemSlot()
+        {
+            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
+            string tempFile;
+
+            if (gameVersionIndex == 0)
+            {
+                tempFile = tempFileR;
+            }
+            else
+            {
+                tempFile = tempFileV;
+            }
+
+            List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(tempFile, "ShopOffsets");
+
+            int shopID = Convert.ToInt32(ShopIDTextBox.Text);
+            int shopItemIndex = ItemSelectionComboBox.SelectedIndex;
+
+            int itemOffset = shopOffsets[shopID] + (shopItemIndex * 40);
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            using (BinaryObjectReader P5FTDFile = new(tempFile, Endianness.Big, Encoding.GetEncoding(932)))
+            {
+                using (BinaryObjectWriter P5NewFTDFile = new(tempFile, Endianness.Big, Encoding.GetEncoding(932)))
+                {
+                    for (int i = 0; i < itemOffset; i++)
+                    {
+                        P5NewFTDFile.Write(P5FTDFile.ReadByte());
+                    }
+                    long currentPosition = P5FTDFile.Position;
+                    int numOfItems = Convert.ToInt32(NumOfItemsTextBox.Text);
+                    if (numOfItems < 1)
+                    {
+                        for (int i = 0; i < 40; i++) //add in end of last shop
+                        {
+                            P5NewFTDFile.Write(P5FTDFile.ReadByte());
+                        }
+
+                        P5FTDFile.AtOffset(48);
+
+                        for (int i = 0; i < 40; i++)
+                        {
+                            P5NewFTDFile.Write(P5FTDFile.ReadByte());
+                        }
+                        currentPosition += 40;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < 40; i++)
+                        {
+                            P5NewFTDFile.Write(P5FTDFile.ReadByte());
+                        }
+                    }
+
+                    P5NewFTDFile.At(8, SeekOrigin.Begin);
+                    P5FTDFile.AtOffset(8); //Filesize
+                    P5NewFTDFile.Write(P5FTDFile.ReadUInt32() + 40); //Subtract Filesize field by 40
+
+                    P5NewFTDFile.At(36, SeekOrigin.Begin);
+                    P5FTDFile.AtOffset(36); //Datasize
+                    P5NewFTDFile.Write(P5FTDFile.ReadUInt32() + 40); //Subtract Datasize field by 40
+                    P5NewFTDFile.Write(P5FTDFile.ReadUInt32() + 1); //Subtract Entry Count field by 1
+
+                    P5NewFTDFile.At(0, SeekOrigin.End);
+                    P5FTDFile.AtOffset(currentPosition);
+
+                    long remainingSpace = P5FTDFile.Length - P5FTDFile.Position;
+
+                    for (int i = 0; i < (int)remainingSpace; i++) //write to end of file
+                    {
+                        P5NewFTDFile.Write(P5FTDFile.ReadByte());
+                    }
+                }
+            }
+        }
+
+        private void RemoveItemSlot()
+        {
+            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
+            string tempFile;
+
+            if (gameVersionIndex == 0)
+            {
+                tempFile = tempFileR;
+            }
+            else
+            {
+                tempFile = tempFileV;
+            }
+
+            List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(tempFile, "ShopOffsets");
+
+            int shopID = Convert.ToInt32(ShopIDTextBox.Text);
+            int shopItemIndex = ItemSelectionComboBox.SelectedIndex;
+
+            int itemOffset = shopOffsets[shopID] + (shopItemIndex * 40);
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            using (BinaryObjectReader P5FTDFile = new(tempFile, Endianness.Big, Encoding.GetEncoding(932)))
+            {
+                using (BinaryObjectWriter P5NewFTDFile = new(tempFile, Endianness.Big, Encoding.GetEncoding(932)))
+                {
+                    for (int i = 0; i < itemOffset; i++)
+                    {
+                        P5NewFTDFile.Write(P5FTDFile.ReadByte());
+                    }
+                    for (int i = 0; i < 40; i++)
+                    {
+                        P5FTDFile.ReadByte();
+                    }
+
+                    long currentPosition = P5FTDFile.Position;
+
+                    P5NewFTDFile.At(8, SeekOrigin.Begin);
+                    P5FTDFile.AtOffset(8); //Filesize
+                    P5NewFTDFile.Write(P5FTDFile.ReadUInt32() - 40); //Subtract Filesize field by 40
+
+                    P5NewFTDFile.At(36, SeekOrigin.Begin);
+                    P5FTDFile.AtOffset(36); //Datasize
+                    P5NewFTDFile.Write(P5FTDFile.ReadUInt32() - 40); //Subtract Datasize field by 40
+                    P5NewFTDFile.Write(P5FTDFile.ReadUInt32() - 1); //Subtract Entry Count field by 1
+
+                    P5FTDFile.AtOffset(currentPosition);
+                    P5NewFTDFile.At(0, SeekOrigin.End);
+
+                    long remainingSpace = P5FTDFile.Length - P5FTDFile.Position;
+
+                    for (int i = 0; i < (int)remainingSpace; i++) //write to end of file
+                    {
+                        P5NewFTDFile.Write(P5FTDFile.ReadByte());
+                    }
+                }
+            }
+        }
         private void SaveNameftd()
         {
             string gameVersion;
@@ -697,7 +863,7 @@ namespace Shop_Editor
             if (gameVersionIndex == 0) gameVersion = "Royal";
             else gameVersion = "Vanilla";
 
-            string tempshopNameftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTabletemp.ftd");
+            string tempshopNameftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopNametemp.ftd");
             string shopNameftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd");
 
             int shopID = Convert.ToInt32(ShopIDTextBox.Text);
@@ -731,7 +897,8 @@ namespace Shop_Editor
             File.Copy(tempshopNameftd, shopNameftd, true);
             File.Delete(tempshopNameftd);
         }
-        private int GetItemNum()
+
+        private bool WriteBinaryPatch(int structSize)
         {
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
@@ -739,29 +906,131 @@ namespace Shop_Editor
             if (gameVersionIndex == 0) gameVersion = "Royal";
             else gameVersion = "Vanilla";
 
-            string shopItemftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
+            string ftdName = "fclPublicShopItemTable";
+            string bpName = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Items.bp");
 
-            List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(shopItemftd, "ShopOffsets");
-
-            int shopID = Convert.ToInt32(ShopIDTextBox.Text);
-            int shopItemIndex = ItemSelectionComboBox.SelectedIndex;
-
-            int itemOffset = shopOffsets[shopID] + ((shopItemIndex * 40) + 2);
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            using (BinaryObjectReader P5FTDFile = new (shopItemftd, Endianness.Big, Encoding.GetEncoding(932)))
+            if (structSize == 32 || structSize == 48)
             {
-                P5FTDFile.AtOffset(itemOffset);
-                ushort itemIndex = P5FTDFile.ReadUInt16();
+                ftdName = "fclPublicShopName";
+                bpName = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Names.bp");
 
-                int itemCategory = itemIndex / 0x1000;
-                int itemID = itemIndex - (itemCategory * 0x1000);
-
-                return itemID;
             }
+
+            string shopftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\{ftdName}.ftd");
+
+            List<int> changeOffsetList = GetChangeOffsets(structSize, gameVersion, ftdName);
+
+            if (changeOffsetList.Count <= 0)
+            {
+                if (File.Exists(bpName))
+                {
+                    File.Delete(bpName);
+                }
+                return false;
+            }
+
+            string shopByteString;
+            string shopValues;
+
+            using StreamWriter binaryPatch = new(bpName);
+
+            string startBP = "{\n  \"Version\": 1,\n  \"Patches\": [";
+            binaryPatch.WriteLine(startBP);
+
+            for (int i = 0; i < changeOffsetList.Count; i++)
+            {
+                int offset = changeOffsetList[i];
+                using (BinaryObjectReader P5FTDFile = new(shopftd, Endianness.Big, Encoding.GetEncoding(932)))
+                {
+                    shopValues = "";
+                    P5FTDFile.AtOffset(offset);
+
+                    for (int j = 0; j < structSize; j++)
+                    {
+                        if (j == structSize - 1)
+                        {
+                            shopByteString = $"{P5FTDFile.ReadByte():X2}";
+                        }
+                        else
+                        {
+                            shopByteString = $"{P5FTDFile.ReadByte():X2} ";
+                        }
+                        shopValues += shopByteString;
+                    }
+                }
+
+                string bpString = CreateBPString(shopValues, offset, ftdName);
+                binaryPatch.WriteLine(bpString);
+            }
+
+            string endBP = "  ]\n}";
+            binaryPatch.WriteLine(endBP);
+            return true;
         }
 
+        private static List<int> GetChangeOffsets(int structSize, string gameVersion, string ftdName)
+        {
+            string shopftdOriginal = Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\{ftdName}.ftd";
+            string shopftdOutput = Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\{ftdName}.ftd";
+
+            uint entryCount = FtdParse.FtdRead(shopftdOriginal);
+
+            List<int> changeOffsets = new();
+
+            List<int> originalValues = new();
+            List<int> outputValues = new();
+
+            for (uint i = 0; i < entryCount; i++)
+            {
+                originalValues.Clear();
+                outputValues.Clear();
+
+                long offset = 48 + (i * structSize);
+
+                using (BinaryObjectReader OriginalP5FTDFile = new(shopftdOriginal, Endianness.Big, Encoding.GetEncoding(932)))
+                {
+                    OriginalP5FTDFile.AtOffset(offset);
+                    for (int j = 0; j < structSize; j++)
+                    {
+                        originalValues.Add(OriginalP5FTDFile.ReadByte());
+                    }
+                }
+
+                using (BinaryObjectReader OutputP5FTDFile = new(shopftdOutput, Endianness.Big, Encoding.GetEncoding(932)))
+                {
+                    OutputP5FTDFile.AtOffset(offset);
+                    for (int j = 0; j < structSize; j++)
+                    {
+                        outputValues.Add(OutputP5FTDFile.ReadByte());
+                    }
+                }
+
+                if (!Enumerable.SequenceEqual(originalValues, outputValues))
+                {
+                    changeOffsets.Add((int)offset);
+                }
+            }
+            return changeOffsets;
+        }
+        private static string CreateBPString(string shopValueString, int offset, string ftdName)
+        {
+            string bpString = $"    {{\n      \"file\": \"init\\\\facility\\\\fclTable\\\\{ftdName}.ftd\",\n      \"offset\": {offset},\n      \"data\": \"{shopValueString}\"\n    }},";
+
+            return bpString;
+        }
         private void CreateDirectories()
         {
+            tempFileV = System.IO.Path.GetTempFileName();
+            tempFileR = System.IO.Path.GetTempFileName();
+
+            string tempFilePath = System.IO.Path.GetDirectoryName(tempFileV);
+
+            File.Move(tempFileV, tempFilePath + "\\TempShopV.ftd", true);
+            File.Move(tempFileR, tempFilePath + "\\TempShopR.ftd", true);
+
+            tempFileV = tempFilePath + "\\TempShopV.ftd";
+            tempFileR = tempFilePath + "\\TempShopR.ftd";
+
             string currentDirectory = Directory.GetCurrentDirectory();
             bool directoryCreated = false;
 
@@ -791,7 +1060,42 @@ namespace Shop_Editor
 
             if (directoryCreated)
             {
-                MessageBox.Show("New Directories Created!", "Created Directories");
+                ShowMessage("New Directories Created!");
+            }
+        }
+        private int GetItemNum()
+        {
+            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
+
+            string tempFile;
+
+            if (gameVersionIndex == 0)
+            {
+                tempFile = tempFileR;
+            }
+            else
+            {
+                tempFile = tempFileV;
+            }
+
+            string shopItemftd = tempFile;
+
+            List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(shopItemftd, "ShopOffsets");
+
+            int shopID = Convert.ToInt32(ShopIDTextBox.Text);
+            int shopItemIndex = ItemSelectionComboBox.SelectedIndex;
+
+            int itemOffset = shopOffsets[shopID] + ((shopItemIndex * 40) + 2);
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            using (BinaryObjectReader P5FTDFile = new(shopItemftd, Endianness.Big, Encoding.GetEncoding(932)))
+            {
+                P5FTDFile.AtOffset(itemOffset);
+                ushort itemIndex = P5FTDFile.ReadUInt16();
+
+                int itemCategory = itemIndex / 0x1000;
+                int itemID = itemIndex - (itemCategory * 0x1000);
+
+                return itemID;
             }
         }
 
@@ -800,17 +1104,30 @@ namespace Shop_Editor
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
-            if (gameVersionIndex == 0) gameVersion = "Royal";
-            else gameVersion = "Vanilla";
+            string tempFile;
 
-            string shopItemftdOutput = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
-            string shopItemftdOriginal = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopItemTable.ftd");
+            if (gameVersionIndex == 0)
+            {
+                gameVersion = "Royal";
+                tempFile = tempFileR;
+            }
+            else
+            {
+                gameVersion = "Vanilla";
+                tempFile = tempFileV;
+            }
 
-            return new FileInfo(shopItemftdOutput).Length == new FileInfo(shopItemftdOriginal).Length;
-        }
-        private void ShowMessage(string message)
-        {
-            MessageTextBox.Text = message;
+            string shopItemftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
+
+            if (!File.Exists(shopItemftd))
+            {
+                shopItemftd = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopItemTable.ftd");
+            }
+
+            List<int> outputOffsets = FtdParse.FindShopOffsetsandCount(tempFile, "ShopOffsets");
+            List<int> originalOffsets = FtdParse.FindShopOffsetsandCount(shopItemftd, "ShopOffsets");
+
+            return (new FileInfo(tempFile).Length == new FileInfo(shopItemftd).Length) && Enumerable.SequenceEqual(outputOffsets, originalOffsets);
         }
 
         private bool CheckForChanges()
@@ -840,7 +1157,7 @@ namespace Shop_Editor
             int shopID = ShopSelectionComboBox.SelectedIndex;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            using (BinaryObjectReader P5FTDFile = new BinaryObjectReader(shopNameftd, Endianness.Big, Encoding.GetEncoding(932)))
+            using (BinaryObjectReader P5FTDFile = new (shopNameftd, Endianness.Big, Encoding.GetEncoding(932)))
             {
                 P5FTDFile.AtOffset(48 + (shopID * nameLength));
                 string originalName = P5FTDFile.ReadString(StringBinaryFormat.FixedLength, nameLength);
@@ -850,23 +1167,26 @@ namespace Shop_Editor
 
         private bool CheckItemChanges() //returns true if changes were made, false if not
         {
-            string gameVersion;
-            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
-
-            if (gameVersionIndex == 0) gameVersion = "Royal";
-            else gameVersion = "Vanilla";
+            string gameVersion = GameVersionComboBox.Text;
+            string tempFile;
 
             string shopItemftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
 
+            if (!File.Exists(shopItemftd))
+            {
+                shopItemftd = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopItemTable.ftd");
+            }
+
             List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(shopItemftd, "ShopOffsets");
 
+            tempFile = shopItemftd;
             int shopID = ShopSelectionComboBox.SelectedIndex;
             int shopItemIndex = ItemSelectionComboBox.SelectedIndex;
 
             int itemOffset = shopOffsets[shopID] + (shopItemIndex * 40);
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            using (BinaryObjectReader P5FTDFile = new BinaryObjectReader(shopItemftd, Endianness.Big, Encoding.GetEncoding(932)))
+            using (BinaryObjectReader P5FTDFile = new (shopItemftd, Endianness.Big, Encoding.GetEncoding(932)))
             {
                 P5FTDFile.AtOffset(itemOffset);
                 byte field0 = P5FTDFile.ReadByte(); //field0
@@ -890,7 +1210,7 @@ namespace Shop_Editor
                 bool endDay = P5FTDFile.ReadByte() == Convert.ToByte(EndDayTextBox.Text); //end day
 
                 P5FTDFile.ReadByte();
-                bool quantity = P5FTDFile.ReadByte() == Convert.ToByte(QuantityTextBox.Text);
+                bool quantity = P5FTDFile.ReadByte() == Convert.ToByte(QuantityTextBox.Text); //quantity
                 P5FTDFile.ReadByte();
 
                 P5FTDFile.ReadInt32();
@@ -903,11 +1223,11 @@ namespace Shop_Editor
                     short bitflagSection = P5FTDFile.ReadInt16();
                     short bitflag = P5FTDFile.ReadInt16();
                     int convertedFlag = FtdParse.SumRoyalFlag(bitflagSection, bitflag);
-                    bitflagRequirement = convertedFlag == Convert.ToInt32(RequiredBitflagTextBox.Text);
+                    bitflagRequirement = convertedFlag == Convert.ToInt32(RequiredBitflagTextBox.Text); //Royal Bitflag
                 }
                 else
                 {
-                    bitflagRequirement = P5FTDFile.ReadInt32() == Convert.ToInt32(RequiredBitflagTextBox.Text);
+                    bitflagRequirement = P5FTDFile.ReadInt32() == Convert.ToInt32(RequiredBitflagTextBox.Text); //Vanilla Bitflag
                 }
 
                 P5FTDFile.ReadInt32();
@@ -919,6 +1239,11 @@ namespace Shop_Editor
                 if (!unlimQuantity || !itemID || !amountPerUnit || !startMonth || !startDay || !endMonth || !endDay || !quantity || !bitflagRequirement || !pricePercentage) return true;
                 else return false;
             }
+        }
+
+        private void ShowMessage(string message)
+        {
+            MessageTextBox.Text = message;
         }
     }  
 
