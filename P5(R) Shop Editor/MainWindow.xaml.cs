@@ -111,7 +111,7 @@ namespace Shop_Editor
                 nameLength = 32;
             }
 
-            if (!CheckForChanges() && CompareFiles(40, 1) && CompareFiles(nameLength, 1))
+            if (!CheckForChanges() && !CompareFiles(40, 1) && !CompareFiles(nameLength, 1))
             {
                 ShowMessage("No new changes have been made!");
                 return;
@@ -1087,16 +1087,25 @@ namespace Shop_Editor
                 tempFile = tempFileV;
             }
 
+            if (structSize == 48 || structSize == 32)
+            {
+                if (gameVersionIndex == 0)
+                {
+                    tempFile = tempNameR;
+                }
+                else
+                {
+                    tempFile = tempNameV;
+                }
+            }
+
             string shopftdOriginal = Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\{ftdName}.ftd";
             string shopftdOutput = Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\{ftdName}.ftd";
 
-            if (structSize == 40)
+            shopftdOutput = tempFile;
+            if (mode == 1)
             {
-                shopftdOutput = tempFile;
-                if (mode == 1)
-                {
-                    shopftdOriginal = Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\{ftdName}.ftd";
-                }
+                shopftdOriginal = Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\{ftdName}.ftd";
             }
 
             uint entryCount = FtdParse.FtdRead(shopftdOriginal);
@@ -1259,27 +1268,25 @@ namespace Shop_Editor
 
         private bool CheckNameChanges() //returns true if changes were made, false if not
         {
-            string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
             int nameLength;
+            string tempFile;
 
             if (gameVersionIndex == 0)
             {
-                gameVersion = "Royal";
                 nameLength = 48;
+                tempFile = tempNameR;
             }
             else
             {
-                gameVersion = "Vanilla";
                 nameLength = 32;
+                tempFile = tempNameV;
             }
-
-            string shopNameftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd");
 
             int shopID = ShopSelectionComboBox.SelectedIndex;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            using (BinaryObjectReader P5FTDFile = new (shopNameftd, Endianness.Big, Encoding.GetEncoding(932)))
+            using (BinaryObjectReader P5FTDFile = new (tempFile, Endianness.Big, Encoding.GetEncoding(932)))
             {
                 P5FTDFile.AtOffset(48 + (shopID * nameLength));
                 string originalName = P5FTDFile.ReadString(StringBinaryFormat.FixedLength, nameLength);
