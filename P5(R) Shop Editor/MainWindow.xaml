@@ -9,25 +9,33 @@
 
     <Border Padding="20">
         <StackPanel>
-
-            <!--Game Version-->
-            <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                <TextBlock Text="Game Version" HorizontalAlignment="Center"/>
-                <ListBox x:Name="GameVersionComboBox" SelectionChanged="GameVersionComboBox_SelectionChanged" SelectedIndex="0" Background="#202020" Foreground="#fff" Margin="0 0 20 0" Grid.Column="0" >
-                    <ListBox.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" />
-                        </ItemsPanelTemplate>
-                    </ListBox.ItemsPanel>
-                    <ListBox.ItemContainerStyle>
-                        <Style TargetType="ListBoxItem">
-                            <Setter Property="Padding" Value="30 0 30 0" />
-                        </Style>
-                    </ListBox.ItemContainerStyle>
-                    <ListBoxItem>Royal</ListBoxItem>
-                    <ListBoxItem>Vanilla</ListBoxItem>
-                </ListBox>
-            </StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <!--Game Version-->
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                    <TextBlock Text="Game Version" HorizontalAlignment="Center"/>
+                    <ListBox x:Name="GameVersionComboBox" SelectionChanged="GameVersionComboBox_SelectionChanged" SelectedIndex="0" Background="#202020" Foreground="#fff" Margin="0 0 20 0" Grid.Column="0" >
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="30 0 30 0" />
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBoxItem>Royal</ListBoxItem>
+                        <ListBoxItem>Vanilla</ListBoxItem>
+                    </ListBox>
+                </StackPanel>
+                <Image Grid.Column="0" Margin="8,0,208,0" Source="/kofi.png" Height="37.92" />
+                <Button x:Name="KofiLink" Click="KofiLink_Click" Margin="8,0,208,0" Height="37.92" Opacity="0" Cursor="Hand"/>
+            </Grid>
             <Grid Margin="0 15 0 0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

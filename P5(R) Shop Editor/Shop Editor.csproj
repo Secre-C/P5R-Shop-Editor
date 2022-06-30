@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <None Remove="itemshop.png" />
+    <None Remove="kofi.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +32,7 @@
 
   <ItemGroup>
     <Resource Include="itemshop.png" />
+    <Resource Include="kofi.png" />
   </ItemGroup>
 
 </Project>

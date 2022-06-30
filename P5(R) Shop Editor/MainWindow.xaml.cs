@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Diagnostics;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -82,6 +83,11 @@ namespace Shop_Editor
             return int.TryParse(str, out int i) && i >= 1 && i <= dayArray[monthIndex];
         }
 
+        private void KofiLink_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo("https://ko-fi.com/secrec9802") { UseShellExecute = true });
+        }
+
         private void ResetButton_Click(object sender, RoutedEventArgs e)
         {
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
@@ -105,7 +111,7 @@ namespace Shop_Editor
                 nameLength = 32;
             }
 
-            if (!CheckForChanges() && !CompareFiles(40, 1) && !CompareFiles(nameLength, 1))
+            if (!CheckForChanges() && CompareFiles(40, 1) && CompareFiles(nameLength, 1))
             {
                 ShowMessage("No new changes have been made!");
                 return;
@@ -151,8 +157,11 @@ namespace Shop_Editor
                 tempName = tempNameV;
                 nameLength = 32;
             }
-
-            if (!CheckForChanges() && !CompareFiles(40, 0) && !CompareFiles(nameLength, 0))
+            bool itemChanges = CompareFiles(40, 0);
+            bool nameChanges = CompareFiles(nameLength, 0);
+            bool userChanges = CheckForChanges();
+            Console.WriteLine(userChanges + " " + nameChanges + " " + itemChanges);
+            if (!userChanges && !itemChanges && !nameChanges)
             {
                 ShowMessage("No new changes have been made!");
                 return;
@@ -1004,9 +1013,13 @@ namespace Shop_Editor
 
             List<int> changeOffsetList = GetChangeOffsets(structSize, gameVersionIndex, ftdName, mode);
 
-            if (changeOffsetList.Count <= 0 || !AreEntryCountsEqual(0))
+            if (changeOffsetList.Count <= 0)
             {
                 return false;
+            }
+            else if(!AreEntryCountsEqual(0))
+            {
+                return true;
             }
             else if (mode == 0 || mode == 1)
             {
