@@ -190,7 +190,6 @@ namespace Shop_Editor
 
             if (!CheckForChanges())
             {
-                Console.WriteLine(isOutputFileDifferent + " " + AreEntryCountsEqual(1));
                 if (!isOutputFileDifferent && AreEntryCountsEqual(1))
                 {
                     ShowMessage("No new changes have been made!");
