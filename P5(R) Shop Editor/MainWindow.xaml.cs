@@ -190,6 +190,7 @@ namespace Shop_Editor
 
             if (!CheckForChanges())
             {
+                Console.WriteLine(isOutputFileDifferent + " " + AreEntryCountsEqual(1));
                 if (!isOutputFileDifferent && AreEntryCountsEqual(1))
                 {
                     ShowMessage("No new changes have been made!");
@@ -198,6 +199,10 @@ namespace Shop_Editor
                 else if (isOutputFileDifferent && !isOriginalFileDifferent && AreEntryCountsEqual(0))
                 {
                     File.Copy(tempFile, Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd", true);
+                    if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Items.bp"))
+                    {
+                        File.Delete(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Items.bp");
+                    }
                     ShowMessage($"Changes Saved to 'Output\\{gameVersion}'!");
                     return;
                 }
@@ -210,25 +215,33 @@ namespace Shop_Editor
 
             SaveNameftd();
 
-            if (AreEntryCountsEqual(0) && CompareFiles(40, 2))
+            bool isNameChanged = CheckNameChanges();
+            bool isNameBP = CompareFiles(nameLength, 2);
+            bool isItemBP = CompareFiles(40, 2);
+
+            if (AreEntryCountsEqual(0) && isItemBP || (isNameChanged && isNameBP))
             {
                 ShowMessage($"Created Binary Patch file (.bp) and saved changes to 'Output\\{gameVersion}'!");
             }
             else
             {
                 ShowMessage($"Changes Saved to 'Output\\{gameVersion}'!");
+            }
 
+            if (!isItemBP)
+            {
                 if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Items.bp"))
                 {
                     File.Delete(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Items.bp");
                 }
             }
 
-            bool isNameChanged = CheckNameChanges();
-
-            if (isNameChanged)
+            if (!isNameBP)
             {
-                CompareFiles(nameLength, 2);
+                if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Names.bp"))
+                {
+                    File.Delete(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Names.bp");
+                }
             }
 
             ResetStuff();
@@ -992,19 +1005,15 @@ namespace Shop_Editor
 
             List<int> changeOffsetList = GetChangeOffsets(structSize, gameVersionIndex, ftdName, mode);
 
-            if (changeOffsetList.Count <= 0)
+            if (changeOffsetList.Count <= 0 || !AreEntryCountsEqual(0))
             {
-                if (File.Exists(bpName))
-                {
-                    File.Delete(bpName);
-                }
                 return false;
             }
-            else if (mode == 0 || mode == 1 || !AreEntryCountsEqual(0))
+            else if (mode == 0 || mode == 1)
             {
                 return true;
             }
-            else
+            else if(mode == 2)
             {
                 WriteBinaryPatch(structSize, bpName, changeOffsetList, ftdName, shopftd);
             }
