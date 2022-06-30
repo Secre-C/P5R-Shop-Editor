@@ -96,7 +96,7 @@
                     <!--Item Entry Properties-->
                     <TextBlock Text="Item Entry Properties" Grid.Row="0" FontSize="25" HorizontalAlignment="Center" Foreground="#fff"/>
 
-                    <Grid Grid.Row="1" Margin="0 0" Width="384" HorizontalAlignment="Center">
+                    <Grid Grid.Row="1" Width="384" HorizontalAlignment="Center">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />

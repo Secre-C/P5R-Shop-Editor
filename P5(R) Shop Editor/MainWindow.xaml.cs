@@ -12,6 +12,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Animation;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Text.RegularExpressions;
@@ -113,26 +114,31 @@ namespace Shop_Editor
 
         private void ResetAllButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!CheckForChanges() && !CompareFiles(40, 0))
-            {
-                ShowMessage("No new changes have been made!");
-                return;
-            }
 
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
             string tempFile;
 
+            int nameLength;
+
             if (gameVersionIndex == 0)
             {
                 gameVersion = "Royal";
                 tempFile = tempFileR;
+                nameLength = 48;
             }
             else
             {
                 gameVersion = "Vanilla";
                 tempFile = tempFileV;
+                nameLength = 32;
+            }
+
+            if (!CheckForChanges() && !CompareFiles(40, 0) && !CompareFiles(nameLength, 0))
+            {
+                ShowMessage("No new changes have been made!");
+                return;
             }
 
             string shopItemftdOriginal = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopItemTable.ftd");
@@ -169,7 +175,6 @@ namespace Shop_Editor
 
             if (!CheckForChanges())
             {
-                Console.WriteLine(isOutputFileDifferent);
                 if (!isOutputFileDifferent && AreEntryCountsEqual(1))
                 {
                     ShowMessage("No new changes have been made!");
@@ -491,13 +496,15 @@ namespace Shop_Editor
             {
                 QuantityTextBox.IsReadOnly = true;
                 QuantityTextBox.Text = "99";
-                QuantityTextBox.Background = new SolidColorBrush(Color.FromArgb(0xff, 0xee, 0xee, 0xee));
+                QuantityTextBox.Background = new SolidColorBrush(Color.FromArgb(0xff, 0x20, 0x20, 0x20));
+                QuantityTextBox.Foreground = Brushes.White;
 
             }
             else
             {
                 QuantityTextBox.IsReadOnly = false;
                 QuantityTextBox.Background = Brushes.White;
+                QuantityTextBox.Foreground = Brushes.Black;
             }
         }
 
@@ -1300,11 +1307,6 @@ namespace Shop_Editor
             }
         }
 
-        private void ShowMessage(string message)
-        {
-            MessageTextBox.Text = message;
-        }
-
         private string GetTempFile()
         {
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
@@ -1316,6 +1318,10 @@ namespace Shop_Editor
 
             return tempFileV;
         }
-    }  
 
+        private void ShowMessage(string message)
+        {
+            MessageTextBox.Text = message;
+        }
+    }  
 }
