@@ -95,7 +95,7 @@ namespace Shop_Editor
                 tempFile = tempFileV;
             }
 
-            if (!CheckForChanges() && CompareEntryCounts())
+            if (!CheckForChanges() && !CompareFiles(40, 1))
             {
                 ShowMessage("No new changes have been made!");
                 return;
@@ -113,6 +113,12 @@ namespace Shop_Editor
 
         private void ResetAllButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CheckForChanges() && !CompareFiles(40, 0))
+            {
+                ShowMessage("No new changes have been made!");
+                return;
+            }
+
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
@@ -146,30 +152,47 @@ namespace Shop_Editor
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
             int nameLength = 48;
+
+            string tempFile = tempFileR;
+            string gameVersion = "Royal";
             
             if (gameVersionIndex == 1)
             {
                 nameLength = 32;
+                tempFile = tempFileV;
+                gameVersion = "Vanilla";
             }
 
-            string gameVersion = GameVersionComboBox.Text;
-            bool isStructureIntact = CompareEntryCounts();
 
-            if (!CheckForChanges() && CompareEntryCounts())
+            bool isOriginalFileDifferent = CompareFiles(40, 0);
+            bool isOutputFileDifferent = CompareFiles(40, 1);
+
+            if (!CheckForChanges())
             {
-                ShowMessage("No new changes have been made!");
-                return;
+                Console.WriteLine(isOutputFileDifferent);
+                if (!isOutputFileDifferent && AreEntryCountsEqual(1))
+                {
+                    ShowMessage("No new changes have been made!");
+                    return;
+                }
+                else if (isOutputFileDifferent && !isOriginalFileDifferent && AreEntryCountsEqual(0))
+                {
+                    File.Copy(tempFile, Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd", true);
+                    ShowMessage($"Changes Saved to 'Output\\{gameVersion}'!");
+                    return;
+                }
             }
 
-            SaveItemftd();
+            if (CheckItemChanges() || !AreEntryCountsEqual(1))
+            {
+                SaveItemftd();
+            }
+
             SaveNameftd();
 
-            if (isStructureIntact)
+            if (AreEntryCountsEqual(0) && CompareFiles(40, 2))
             {
-                if (WriteBinaryPatch(40))
-                {
-                    ShowMessage($"Created Binary Patch file (.bp) and saved changes to 'Output\\{gameVersion}'!");
-                }
+                ShowMessage($"Created Binary Patch file (.bp) and saved changes to 'Output\\{gameVersion}'!");
             }
             else
             {
@@ -185,7 +208,7 @@ namespace Shop_Editor
 
             if (isNameChanged)
             {
-                WriteBinaryPatch(nameLength);
+                CompareFiles(nameLength, 2);
             }
 
             ResetStuff();
@@ -590,7 +613,7 @@ namespace Shop_Editor
             }
             else
             {
-                if (File.Exists("\\Output\\Royal\\fclPublicShopItemTable.ftd"))
+                if (File.Exists(Directory.GetCurrentDirectory() + "\\Output\\Royal\\fclPublicShopItemTable.ftd"))
                 {
                     File.Copy(Directory.GetCurrentDirectory() + "\\Output\\Royal\\fclPublicShopItemTable.ftd", tempFileR, true);
                 }
@@ -608,7 +631,7 @@ namespace Shop_Editor
             if (File.Exists(Directory.GetCurrentDirectory() + "\\Original\\Vanilla\\fclPublicShopItemTable.ftd") 
                 && File.Exists(Directory.GetCurrentDirectory() + "\\Original\\Vanilla\\fclPublicShopName.ftd"))
             {
-                if (File.Exists("\\Output\\Vanilla\\fclPublicShopItemTable.ftd"))
+                if (File.Exists(Directory.GetCurrentDirectory() + "\\Output\\Vanilla\\fclPublicShopItemTable.ftd"))
                 {
                     File.Copy(Directory.GetCurrentDirectory() + "\\Output\\Vanilla\\fclPublicShopItemTable.ftd", tempFileV, true);
                 }
@@ -898,7 +921,7 @@ namespace Shop_Editor
             File.Delete(tempshopNameftd);
         }
 
-        private bool WriteBinaryPatch(int structSize)
+        private bool CompareFiles(int structSize, int mode) //0 for original, 1 for output, 2 for output and write bp
         {
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
@@ -918,7 +941,12 @@ namespace Shop_Editor
 
             string shopftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\{ftdName}.ftd");
 
-            List<int> changeOffsetList = GetChangeOffsets(structSize, gameVersion, ftdName);
+            if (mode == 0)
+            {
+                shopftd = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\{ftdName}.ftd");
+            }
+
+            List<int> changeOffsetList = GetChangeOffsets(structSize, gameVersionIndex, ftdName, mode);
 
             if (changeOffsetList.Count <= 0)
             {
@@ -928,7 +956,18 @@ namespace Shop_Editor
                 }
                 return false;
             }
-
+            else if (mode == 0 || mode == 1 || !AreEntryCountsEqual(0))
+            {
+                return true;
+            }
+            else
+            {
+                WriteBinaryPatch(structSize, bpName, changeOffsetList, ftdName, shopftd);
+            }
+            return true;
+        }
+        private void WriteBinaryPatch(int structSize, string bpName, List<int>changeOffsetList, string ftdName, string shopftd)
+        {
             string shopByteString;
             string shopValues;
 
@@ -965,17 +1004,46 @@ namespace Shop_Editor
 
             string endBP = "  ]\n}";
             binaryPatch.WriteLine(endBP);
-            return true;
         }
 
-        private static List<int> GetChangeOffsets(int structSize, string gameVersion, string ftdName)
+        private static List<int> GetChangeOffsets(int structSize, int gameVersionIndex, string ftdName, int mode)
         {
+            string gameVersion;
+            string tempFile;
+
+            if (gameVersionIndex == 0)
+            {
+                gameVersion = "Royal";
+                tempFile = tempFileR;
+            }
+            else
+            {
+                gameVersion = "Vanilla";
+                tempFile = tempFileV;
+            }
+
             string shopftdOriginal = Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\{ftdName}.ftd";
             string shopftdOutput = Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\{ftdName}.ftd";
 
+            if (structSize == 40)
+            {
+                shopftdOutput = tempFile;
+                if (mode == 1)
+                {
+                    shopftdOriginal = Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\{ftdName}.ftd";
+                }
+            }
+
             uint entryCount = FtdParse.FtdRead(shopftdOriginal);
+            uint entryCountOutput = FtdParse.FtdRead(shopftdOutput);
 
             List<int> changeOffsets = new();
+
+            if (entryCount != entryCountOutput)
+            {
+                changeOffsets.Add(0);
+                return changeOffsets;
+            }
 
             List<int> originalValues = new();
             List<int> outputValues = new();
@@ -1099,7 +1167,7 @@ namespace Shop_Editor
             }
         }
 
-        private bool CompareEntryCounts()
+        private bool AreEntryCountsEqual(int mode) //0 for original, 1 for output
         {
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
@@ -1119,7 +1187,7 @@ namespace Shop_Editor
 
             string shopItemftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
 
-            if (!File.Exists(shopItemftd))
+            if (!File.Exists(shopItemftd) || mode == 0)
             {
                 shopItemftd = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopItemTable.ftd");
             }
@@ -1130,7 +1198,7 @@ namespace Shop_Editor
             return (new FileInfo(tempFile).Length == new FileInfo(shopItemftd).Length) && Enumerable.SequenceEqual(outputOffsets, originalOffsets);
         }
 
-        private bool CheckForChanges()
+        private bool CheckForChanges() //true if changes were made, false if none
         {
             return CheckItemChanges() || CheckNameChanges() == false;
         }
@@ -1167,26 +1235,17 @@ namespace Shop_Editor
 
         private bool CheckItemChanges() //returns true if changes were made, false if not
         {
-            string gameVersion = GameVersionComboBox.Text;
-            string tempFile;
+            string tempFile = GetTempFile();
 
-            string shopItemftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
+            List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(tempFile, "ShopOffsets");
 
-            if (!File.Exists(shopItemftd))
-            {
-                shopItemftd = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopItemTable.ftd");
-            }
-
-            List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(shopItemftd, "ShopOffsets");
-
-            tempFile = shopItemftd;
             int shopID = ShopSelectionComboBox.SelectedIndex;
             int shopItemIndex = ItemSelectionComboBox.SelectedIndex;
 
             int itemOffset = shopOffsets[shopID] + (shopItemIndex * 40);
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            using (BinaryObjectReader P5FTDFile = new (shopItemftd, Endianness.Big, Encoding.GetEncoding(932)))
+            using (BinaryObjectReader P5FTDFile = new (tempFile, Endianness.Big, Encoding.GetEncoding(932)))
             {
                 P5FTDFile.AtOffset(itemOffset);
                 byte field0 = P5FTDFile.ReadByte(); //field0
@@ -1244,6 +1303,18 @@ namespace Shop_Editor
         private void ShowMessage(string message)
         {
             MessageTextBox.Text = message;
+        }
+
+        private string GetTempFile()
+        {
+            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
+
+            if (gameVersionIndex == 0)
+            {
+                return tempFileR;
+            }
+
+            return tempFileV;
         }
     }  
 
