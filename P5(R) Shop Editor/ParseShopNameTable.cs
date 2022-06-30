@@ -16,13 +16,21 @@ namespace shoplogic
         public static string PrintShopName(int shopInput, int gameVersionIndex)
         {
             int nameLength;
-            if (gameVersionIndex == 0) nameLength = 48;
-            else nameLength = 32;
-
             string gameVersion;
-            if (gameVersionIndex == 0) gameVersion = "Royal";
-            else gameVersion = "Vanilla";
-            string shopNameftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd"); ;
+            string tempName;
+
+            if (gameVersionIndex == 0)
+            {
+                nameLength = 48;
+                tempName = MainWindow.tempNameR;
+            }
+            else
+            {
+                nameLength = 32;
+                tempName = MainWindow.tempNameV;
+            }
+
+            string shopNameftd = tempName;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             using (BinaryObjectReader P5FTDFile = new BinaryObjectReader(shopNameftd, Endianness.Big, Encoding.GetEncoding(932)))
@@ -38,20 +46,25 @@ namespace shoplogic
         public static List<string> MakeShopNameList(int gameVersionIndex)
         {
             int nameLength;
-            if (gameVersionIndex == 0) nameLength = 48;
-            else nameLength = 32;
+            string tempName;
 
-            string gameVersion;
-            if (gameVersionIndex == 0) gameVersion = "Royal";
-            else gameVersion = "Vanilla";
-            string shopNameftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd");
+            if (gameVersionIndex == 0)
+            {
+                nameLength = 48;
+                tempName = MainWindow.tempNameR;
+            }
+            else 
+            {
+                nameLength = 32;
+                tempName = MainWindow.tempNameV;
+            }
 
             List<string> ShopNameList = new List<string>();
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            using (BinaryObjectReader P5FTDFile = new BinaryObjectReader(shopNameftd, Endianness.Big, Encoding.GetEncoding(932)))
+            using (BinaryObjectReader P5FTDFile = new BinaryObjectReader(tempName, Endianness.Big, Encoding.GetEncoding(932)))
             {
-                uint entryCount = FtdParse.FtdRead(shopNameftd);
+                uint entryCount = FtdParse.FtdRead(tempName);
                 for (int i = 0; i < entryCount; i++)
                 {
                     long nameOffset = 48 + (i * nameLength);

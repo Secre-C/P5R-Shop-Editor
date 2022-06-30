@@ -31,9 +31,12 @@ namespace Shop_Editor
         private bool windowShowFirstTime = true;
         public static string tempFileV = "";
         public static string tempFileR = "";
+        public static string tempNameV = "";
+        public static string tempNameR = "";
 
         public MainWindow()
         {
+            CreateTempFiles();
             CreateDirectories();
             InitializeComponent();
             CheckForFtdsOnStartup();
@@ -84,19 +87,25 @@ namespace Shop_Editor
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
             string gameVersion;
             string tempFile;
+            string tempName;
+            int nameLength;
 
             if (gameVersionIndex == 0)
             {
                 gameVersion = "Royal";
                 tempFile = tempFileR;
+                tempName = tempNameR;
+                nameLength = 48;
             }
             else
             {
                 gameVersion = "Vanilla";
                 tempFile = tempFileV;
+                tempName = tempNameV;
+                nameLength = 32;
             }
 
-            if (!CheckForChanges() && !CompareFiles(40, 1))
+            if (!CheckForChanges() && !CompareFiles(40, 1) && !CompareFiles(nameLength, 1))
             {
                 ShowMessage("No new changes have been made!");
                 return;
@@ -105,6 +114,11 @@ namespace Shop_Editor
             if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd"))
             {
                 File.Copy(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd", tempFile, true);
+            }
+
+            if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd"))
+            {
+                File.Copy(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd", tempName, true);
             }
 
             ResetStuff();
@@ -119,6 +133,7 @@ namespace Shop_Editor
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
             string tempFile;
+            string tempName;
 
             int nameLength;
 
@@ -126,12 +141,14 @@ namespace Shop_Editor
             {
                 gameVersion = "Royal";
                 tempFile = tempFileR;
+                tempName = tempNameR;
                 nameLength = 48;
             }
             else
             {
                 gameVersion = "Vanilla";
                 tempFile = tempFileV;
+                tempName = tempNameV;
                 nameLength = 32;
             }
 
@@ -144,10 +161,8 @@ namespace Shop_Editor
             string shopItemftdOriginal = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopItemTable.ftd");
             string shopNameftdOriginal = (Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopName.ftd");
 
-            string shopNameftdOutput = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd");
-
             File.Copy(shopItemftdOriginal, tempFile, true);
-            File.Copy(shopNameftdOriginal, shopNameftdOutput, true);
+            File.Copy(shopNameftdOriginal, tempName, true);
 
             ResetStuff();
             ShowMessage($"All items have been reverted to their original state!");
@@ -516,7 +531,12 @@ namespace Shop_Editor
 
             var shopIndex = ShopSelectionComboBox.SelectedIndex;
             ShopSelectionComboBox.ItemsSource = ShopNameList;
-            if (shopIndex == -1) shopIndex = 0;
+
+            if (shopIndex == -1)
+            {
+                shopIndex = 0;
+            }
+
             ShopSelectionComboBox.SelectedIndex = shopIndex;
 
             PopulateShopInformation();
@@ -629,9 +649,13 @@ namespace Shop_Editor
                     File.Copy(Directory.GetCurrentDirectory() + "\\Original\\Royal\\fclPublicShopItemTable.ftd", tempFileR, true);
                 }
 
-                if (!File.Exists(Directory.GetCurrentDirectory() + "\\Output\\Royal\\fclPublicShopName.ftd"))
+                if (File.Exists(Directory.GetCurrentDirectory() + "\\Output\\Royal\\fclPublicShopName.ftd"))
                 {
-                    File.Copy(Directory.GetCurrentDirectory() + "\\Original\\Royal\\fclPublicShopName.ftd", Directory.GetCurrentDirectory() + "\\Output\\Royal\\fclPublicShopName.ftd");
+                    File.Copy(Directory.GetCurrentDirectory() + "\\Output\\Royal\\fclPublicShopName.ftd", tempNameR, true);
+                }
+                else
+                {
+                    File.Copy(Directory.GetCurrentDirectory() + "\\Original\\Royal\\fclPublicShopName.ftd", tempNameR, true);
                 }
             }
 
@@ -647,9 +671,13 @@ namespace Shop_Editor
                     File.Copy(Directory.GetCurrentDirectory() + "\\Original\\Vanilla\\fclPublicShopItemTable.ftd", tempFileV, true);
                 }
 
-                if (!File.Exists(Directory.GetCurrentDirectory() + "\\Output\\Vanilla\\fclPublicShopName.ftd"))
+                if (File.Exists(Directory.GetCurrentDirectory() + "\\Output\\Vanilla\\fclPublicShopName.ftd"))
                 {
-                    File.Copy(Directory.GetCurrentDirectory() + "\\Original\\Vanilla\\fclPublicShopName.ftd", Directory.GetCurrentDirectory() + "\\Output\\Vanilla\\fclPublicShopName.ftd");
+                    File.Copy(Directory.GetCurrentDirectory() + "\\Output\\Vanilla\\fclPublicShopName.ftd", tempNameV, true);
+                }
+                else
+                {
+                    File.Copy(Directory.GetCurrentDirectory() + "\\Original\\Vanilla\\fclPublicShopName.ftd", tempNameV, true);
                 }
             }
 
@@ -890,10 +918,20 @@ namespace Shop_Editor
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
-            if (gameVersionIndex == 0) gameVersion = "Royal";
-            else gameVersion = "Vanilla";
+            string tempName;
 
-            string tempshopNameftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopNametemp.ftd");
+            if (gameVersionIndex == 0)
+            {
+                gameVersion = "Royal";
+                tempName = tempNameR;
+            }
+            else
+            {
+                gameVersion = "Vanilla";
+                tempName = tempNameV;
+            }
+
+            string tempshopNameftd = tempName;
             string shopNameftd = (Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd");
 
             int shopID = Convert.ToInt32(ShopIDTextBox.Text);
@@ -925,7 +963,6 @@ namespace Shop_Editor
                 }
             }
             File.Copy(tempshopNameftd, shopNameftd, true);
-            File.Delete(tempshopNameftd);
         }
 
         private bool CompareFiles(int structSize, int mode) //0 for original, 1 for output, 2 for output and write bp
@@ -1095,17 +1132,6 @@ namespace Shop_Editor
         }
         private void CreateDirectories()
         {
-            tempFileV = System.IO.Path.GetTempFileName();
-            tempFileR = System.IO.Path.GetTempFileName();
-
-            string tempFilePath = System.IO.Path.GetDirectoryName(tempFileV);
-
-            File.Move(tempFileV, tempFilePath + "\\TempShopV.ftd", true);
-            File.Move(tempFileR, tempFilePath + "\\TempShopR.ftd", true);
-
-            tempFileV = tempFilePath + "\\TempShopV.ftd";
-            tempFileR = tempFilePath + "\\TempShopR.ftd";
-
             string currentDirectory = Directory.GetCurrentDirectory();
             bool directoryCreated = false;
 
@@ -1305,6 +1331,26 @@ namespace Shop_Editor
                 if (!unlimQuantity || !itemID || !amountPerUnit || !startMonth || !startDay || !endMonth || !endDay || !quantity || !bitflagRequirement || !pricePercentage) return true;
                 else return false;
             }
+        }
+
+        private void CreateTempFiles()
+        {
+            tempFileV = System.IO.Path.GetTempFileName();
+            tempFileR = System.IO.Path.GetTempFileName();
+            tempNameV = System.IO.Path.GetTempFileName();
+            tempNameR = System.IO.Path.GetTempFileName();
+
+            string tempFilePath = System.IO.Path.GetDirectoryName(tempFileV);
+
+            File.Move(tempFileV, tempFilePath + "\\TempShopV.ftd", true);
+            File.Move(tempFileR, tempFilePath + "\\TempShopR.ftd", true);
+            File.Move(tempNameV, tempFilePath + "\\TempNameV.ftd", true);
+            File.Move(tempNameR, tempFilePath + "\\TempNameR.ftd", true);
+
+            tempFileV = tempFilePath + "\\TempShopV.ftd";
+            tempFileR = tempFilePath + "\\TempShopR.ftd";
+            tempNameV = tempFilePath + "\\TempNameV.ftd";
+            tempNameR = tempFilePath + "\\TempNameR.ftd";
         }
 
         private string GetTempFile()
