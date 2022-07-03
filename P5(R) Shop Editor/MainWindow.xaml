@@ -5,9 +5,72 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Shop_Editor"
         mc:Ignorable="d"
-        Title="P5/R Shop Editor" ResizeMode="CanMinimize" Height="600" Width="1024" Icon="/itemshop.png" Background="#202020" Foreground="#fff" FontWeight="Bold">
+        Title="P5(R) Shop Editor" 
+        ResizeMode="CanMinimize" Height="600" Width="1024" 
+        Icon="/itemshop.png" 
+        Background="#202020" Foreground="#e6e6e6" 
+        FontWeight="Bold"
+    xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2">
+    <Window.Resources>
+        
+        <SolidColorBrush x:Key="ComboBox.Static.Border" Color="#FFACACAC"/>
+        <SolidColorBrush x:Key="ComboBox.Static.Glyph" Color="#FF606060"/>
+        <SolidColorBrush x:Key="ComboBox.MouseOver.Border" Color="#FF7EB4EA"/>
 
-    <Border Padding="20">
+        <Style x:Key="ComboBoxToggleButton" TargetType="{x:Type ToggleButton}">
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Border x:Name="templateRoot" Background="#303030" BorderBrush="{StaticResource ComboBox.Static.Border}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
+                            <Border x:Name="splitBorder" BorderBrush="Transparent" BorderThickness="1" HorizontalAlignment="Right" Margin="0" SnapsToDevicePixels="true" Width="{DynamicResource {x:Static SystemParameters.VerticalScrollBarWidthKey}}">
+                                <Path x:Name="arrow" Data="F1 M 0,0 L 2.667,2.66665 L 5.3334,0 L 5.3334,-1.78168 L 2.6667,0.88501 L0,-1.78168 L0,0 Z" Fill="{StaticResource ComboBox.Static.Glyph}" HorizontalAlignment="Center" Margin="0" VerticalAlignment="Center"/>
+                            </Border>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="true"/>
+                                    <Condition Binding="{Binding IsEditable, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" Value="false"/>
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="Background" TargetName="templateRoot" Value="#4c4c4c"/>
+                                <Setter Property="BorderBrush" TargetName="templateRoot" Value="{StaticResource ComboBox.MouseOver.Border}"/>
+                            </MultiDataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <ControlTemplate x:Key="ComboBoxTemplate" TargetType="{x:Type ComboBox}">
+            <Grid x:Name="templateRoot" SnapsToDevicePixels="true">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition MinWidth="{DynamicResource {x:Static SystemParameters.VerticalScrollBarWidthKey}}" Width="0"/>
+                </Grid.ColumnDefinitions>
+                <Popup x:Name="PART_Popup" AllowsTransparency="true" Grid.ColumnSpan="2" IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" Margin="1" Placement="Bottom" PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
+                    <theme:SystemDropShadowChrome x:Name="shadow" Color="Transparent" MinWidth="{Binding ActualWidth, ElementName=templateRoot}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                        <Border x:Name="dropDownBorder" Background="#303030" BorderBrush="{DynamicResource {x:Static SystemColors.WindowFrameBrushKey}}" BorderThickness="1">
+                            <ScrollViewer x:Name="DropDownScrollViewer">
+                                <Grid x:Name="grid" RenderOptions.ClearTypeHint="Enabled">
+                                    <Canvas x:Name="canvas" HorizontalAlignment="Left" Height="0" VerticalAlignment="Top" Width="0">
+                                        <Rectangle x:Name="opaqueRect" Fill="{Binding Background, ElementName=dropDownBorder}" Height="{Binding ActualHeight, ElementName=dropDownBorder}" Width="{Binding ActualWidth, ElementName=dropDownBorder}"/>
+                                    </Canvas>
+                                    <ItemsPresenter x:Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                </Grid>
+                            </ScrollViewer>
+                        </Border>
+                    </theme:SystemDropShadowChrome>
+                </Popup>
+                <ToggleButton x:Name="toggleButton" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Grid.ColumnSpan="2" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" Style="{StaticResource ComboBoxToggleButton}"/>
+                <ContentPresenter x:Name="contentPresenter" ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Content="{TemplateBinding SelectionBoxItem}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" IsHitTestVisible="false" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+            </Grid>
+        </ControlTemplate>
+        <Style x:Key="DarkComboBox" TargetType="{x:Type ComboBox}">
+            <Setter Property="Template" Value="{StaticResource ComboBoxTemplate}"/>
+        </Style>
+    </Window.Resources>
+    
+    <Border Padding="20" >
         <StackPanel>
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -18,7 +81,7 @@
                 <!--Game Version-->
                 <StackPanel Grid.Column="1" HorizontalAlignment="Center">
                     <TextBlock Text="Game Version" HorizontalAlignment="Center"/>
-                    <ListBox x:Name="GameVersionComboBox" SelectionChanged="GameVersionComboBox_SelectionChanged" SelectedIndex="0" Background="#202020" Foreground="#fff" Margin="0 0 20 0" Grid.Column="0" >
+                    <ListBox x:Name="GameVersionComboBox" SelectionChanged="GameVersionComboBox_SelectionChanged" SelectedIndex="0" Background="#202020" Foreground="#e6e6e6" Margin="0 0 20 0" Grid.Column="0" >
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel Orientation="Horizontal" />
@@ -51,12 +114,12 @@
                     </Grid.RowDefinitions>
 
                     <!--Shop Properties Text-->
-                    <TextBlock Text="Shop Properties" Grid.Row="0" FontSize="25" HorizontalAlignment="Center" Foreground="#fff"/>
+                    <TextBlock Text="Shop Properties" Grid.Row="0" FontSize="25" HorizontalAlignment="Center" />
 
                     <!--Shop Selection-->
                     <StackPanel Grid.Row="1">
-                        <TextBlock Text="Shop Selection" Foreground="#fff"/>
-                        <ComboBox x:Name="ShopSelectionComboBox" SelectionChanged="ShopSelectionComboBox_SelectionChanged" SelectedIndex="0" Margin="0 0 15 15" Grid.Column="0" />
+                        <TextBlock Text="Shop Selection" />
+                        <ComboBox x:Name="ShopSelectionComboBox" SelectionChanged="ShopSelectionComboBox_SelectionChanged" SelectedIndex="0" Style="{DynamicResource DarkComboBox}" Foreground="#e6e6e6" Margin="0 0 15 15" Grid.Column="0" />
                     </StackPanel>
 
                     <Grid Grid.Row="2" Margin="0 0" Width="384" HorizontalAlignment="Left">
@@ -66,26 +129,26 @@
                         </Grid.ColumnDefinitions>
                         <!--Shop ID-->
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Shop ID" Foreground="#fff"/>
-                            <TextBox x:Name="ShopIDTextBox" IsReadOnly ="True" Margin="0 0 15 0" Background="#202020" Foreground="#fff" Height="21.96"/>
+                            <TextBlock Text="Shop ID" />
+                            <TextBox x:Name="ShopIDTextBox" IsReadOnly ="True" Margin="0 0 15 0" Background="#202020" Foreground="#e6e6e6" Height="21.96"/>
                         </StackPanel>
 
                         <!--Number of Items in shop-->
                         <StackPanel Grid.Column="1">
-                            <TextBlock Text="Number of Items" Foreground="#fff"/>
-                            <TextBox x:Name="NumOfItemsTextBox" IsReadOnly="True" Margin="0 0 15 0" Background="#202020" Foreground="#fff" Height="21.96" />
+                            <TextBlock Text="Number of Items"/>
+                            <TextBox x:Name="NumOfItemsTextBox" IsReadOnly="True" Margin="0 0 15 0" Background="#202020" Foreground="#e6e6e6" Height="21.96" />
                         </StackPanel>
                     </Grid>
 
                     <!--Shop Name-->
                     <StackPanel Grid.Row="3" Margin="0 15 15 0">
-                        <TextBlock Text="Shop Name" Foreground="#fff"/>
-                        <TextBox x:Name="ShopNameTextBox" Height="21.96" />
+                        <TextBlock Text="Shop Name" />
+                        <TextBox x:Name="ShopNameTextBox" TextChanged="ShopNameTextBox_TextChanged" Background="#2a2a2a" Foreground="#e6e6e6" Height="21.96" />
                     </StackPanel>
 
                     <!--Item Selection-->
                     <StackPanel Grid.Row="4" Margin="0 15 15 0">
-                        <TextBlock Text="Item Selection" Foreground="#fff"/>
+                        <TextBlock Text="Item Selection" />
                         <ListBox x:Name="ItemSelectionComboBox" SelectionChanged="ItemSelectionComboBox_SelectionChanged" SelectedIndex="0" Height="216.9" Background="#20202020" Foreground="#fff"/>
                     </StackPanel>
                 </Grid>
@@ -102,7 +165,7 @@
                     </Grid.RowDefinitions>
 
                     <!--Item Entry Properties-->
-                    <TextBlock Text="Item Entry Properties" Grid.Row="0" FontSize="25" HorizontalAlignment="Center" Foreground="#fff"/>
+                    <TextBlock Text="Item Entry Properties" Grid.Row="0" FontSize="25" HorizontalAlignment="Center" />
 
                     <Grid Grid.Row="1" Width="384" HorizontalAlignment="Center">
                         <Grid.ColumnDefinitions>
@@ -111,8 +174,8 @@
                         </Grid.ColumnDefinitions>
                         <!--Item Category-->
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Item Category" Foreground="#fff"/>
-                            <ComboBox x:Name="ItemCategoryComboBox" SelectionChanged="ItemCategoryComboBox_SelectionChanged" SelectedIndex="0" Margin="0 0 15 0">
+                            <TextBlock Text="Item Category" />
+                            <ComboBox Style="{DynamicResource DarkComboBox}" x:Name="ItemCategoryComboBox" SelectionChanged="ItemCategoryComboBox_SelectionChanged" SelectedIndex="0" Foreground="#e6e6e6" Margin="0 0 15 0">
                                 <ComboBoxItem>Melee Weapons</ComboBoxItem>
                                 <ComboBoxItem>Armor</ComboBoxItem>
                                 <ComboBoxItem>Accessories</ComboBoxItem>
@@ -127,8 +190,8 @@
 
                         <!--Item ID-->
                         <StackPanel Grid.Column="1">
-                            <TextBlock Text="Item ID" Foreground="#fff"/>
-                            <ComboBox x:Name="ItemIDComboBox" Margin="0 0 15 0" Height="21.96"/>
+                            <TextBlock Text="Item ID" />
+                            <ComboBox x:Name="ItemIDComboBox" SelectionChanged="ItemIDComboBox_SelectionChanged" Style="{DynamicResource DarkComboBox}" Foreground="#e6e6e6" Margin="0 0 15 0" Height="21.96"/>
                         </StackPanel>
                     </Grid>
 
@@ -142,13 +205,13 @@
                         <!--Availability Start Day-->
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="Start Day" FontWeight="Bold"/>
-                            <TextBox x:Name="StartDayTextBox" Text="1" PreviewTextInput="StartDayValidationTextBox" Margin="0 0 15 0" Height="21.96" />
+                            <TextBox x:Name="StartDayTextBox" TextChanged="StartDayTextBox_TextChanged" Text="1" PreviewTextInput="StartDayValidationTextBox" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Height="21.96" />
                         </StackPanel>
 
                         <!--Availability Start Month-->
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Start Month" FontWeight="Bold"/>
-                            <ComboBox SelectionChanged="StartMonthBox_SelectionChanged" x:Name="StartMonthBox" SelectedIndex="0" Margin="0 0 15 0">
+                            <ComboBox SelectionChanged="StartMonthBox_SelectionChanged" x:Name="StartMonthBox" SelectedIndex="0" Style="{DynamicResource DarkComboBox}" Foreground="#e6e6e6" Margin="0 0 15 0">
                                 <ComboBoxItem>January</ComboBoxItem>
                                 <ComboBoxItem>February</ComboBoxItem>
                                 <ComboBoxItem>March</ComboBoxItem>
@@ -167,13 +230,13 @@
                         <!--Availability End Day-->
                         <StackPanel Grid.Column="3">
                             <TextBlock Text="End Day" FontWeight="Bold"/>
-                            <TextBox x:Name="EndDayTextBox" Text="1" PreviewTextInput="EndDayValidationTextBox" Margin="0 0 15 0" Height="21.96" />
+                            <TextBox x:Name="EndDayTextBox" TextChanged="EndDayTextBox_TextChanged" Text="1" PreviewTextInput="EndDayValidationTextBox" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Height="21.96" />
                         </StackPanel>
 
                         <!--Availability End Month-->
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="End Month" FontWeight="Bold"/>
-                            <ComboBox SelectionChanged="EndMonthBox_SelectionChanged" x:Name="EndMonthBox" SelectedIndex="0" Margin="0 0 15 0">
+                            <ComboBox SelectionChanged="EndMonthBox_SelectionChanged" x:Name="EndMonthBox" SelectedIndex="0" Style="{DynamicResource DarkComboBox}" Foreground="#e6e6e6" Margin="0 0 15 0">
                                 <ComboBoxItem>January</ComboBoxItem>
                                 <ComboBoxItem>February</ComboBoxItem>
                                 <ComboBoxItem>March</ComboBoxItem>
@@ -200,19 +263,19 @@
                         <!--Unlimited Quantity Checkbox-->
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Unlimited Quantity" HorizontalAlignment="Center"/>
-                            <CheckBox x:Name="UnlimitedQuantityCheckBox" Unchecked="UnlimitedQuantity_Checked" Checked="UnlimitedQuantity_Checked" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <CheckBox x:Name="UnlimitedQuantityCheckBox" Unchecked="UnlimitedQuantity_Checked" Checked="UnlimitedQuantity_Checked" Background="#303030" Foreground="#e6e6e6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </StackPanel>
 
                         <!--Quantity-->
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="Quantity" FontWeight="Bold"/>
-                            <TextBox x:Name="QuantityTextBox" Text="1"  PreviewTextInput="UByteValidationTextBox" Margin="0 0 15 0" Height="21.96"/>
+                            <TextBox x:Name="QuantityTextBox" Text="1" TextChanged="QuantityTextBox_TextChanged" PreviewTextInput="UByteValidationTextBox" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Height="21.96"/>
                         </StackPanel>
 
                         <!--Item Quantity Acquired per unit purchased-->
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Price Percentage" FontWeight="Bold"/>
-                            <TextBox x:Name="PricePercentageTextBox" PreviewTextInput="IntValidationTextBox" Margin="0 0 15 0" Height="21.96"/>
+                            <TextBox x:Name="PricePercentageTextBox" TextChanged="PricePercentageTextBox_TextChanged" PreviewTextInput="IntValidationTextBox" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Height="21.96"/>
                         </StackPanel>
                     </Grid>
 
@@ -225,13 +288,13 @@
                         <!--Price Percentage-->
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Amount Acquired Per Unit" />
-                            <TextBox x:Name="AmountPerUnitTextBox" PreviewTextInput="UByteValidationTextBox" Text="1" Margin="0 0 15 0" Height="21.96"/>
+                            <TextBox x:Name="AmountPerUnitTextBox" TextChanged="AmountPerUnitTextBox_TextChanged" PreviewTextInput="UByteValidationTextBox" Background="#2a2a2a" Foreground="#e6e6e6" Text="1" Margin="0 0 15 0" Height="21.96"/>
                         </StackPanel>
 
                         <!--Required Bitflag-->
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="Required Bitflag (-1 for none)" FontWeight="Bold"/>
-                            <TextBox x:Name="RequiredBitflagTextBox" PreviewTextInput="IntValidationTextBox" Text="-1" Margin="0 0 15 0" Height="21.96" />
+                            <TextBox x:Name="RequiredBitflagTextBox" TextChanged="RequiredBitflagTextBox_TextChanged" Background="#2a2a2a" Foreground="#e6e6e6" PreviewTextInput="IntValidationTextBox" Text="-1" Margin="0 0 15 0" Height="21.96" />
                         </StackPanel>
 
                     </Grid>
@@ -243,16 +306,16 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0">
-                            <Button x:Name="AddNewItemButton" Click="AddNewItemButton_Click" Margin="0 0 15 0" Content="Add New Item"/>
+                            <Button x:Name="AddNewItemButton" Click="AddNewItemButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Add New Item"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="1">
-                            <Button x:Name="RemoveItemButton" Click="RemoveItemButton_Click" Margin="0 0 15 0" Content="Remove Item"/>
+                            <Button x:Name="RemoveItemButton" Click="RemoveItemButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Remove Item"/>
                         </StackPanel>
                     </Grid>
 
                     <StackPanel Grid.Row="6" Margin="0 0" Width="384" Height="21.96" HorizontalAlignment="Center">
-                        <Button x:Name="SaveButton" Click="SaveButton_Click" Margin="0 0 15 0" Content="Save"/>
+                        <Button x:Name="SaveButton" Click="SaveButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Save"/>
                     </StackPanel>
 
                     <Grid Grid.Row="7" Margin="0 0" Width="384" Height="21.96"  HorizontalAlignment="Center">
@@ -262,11 +325,11 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0">
-                            <Button Click="ResetButton_Click" Margin="0 0 15 0" Content="Reset"/>
+                            <Button Click="ResetButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Reset"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="1">
-                            <Button x:Name="ResetAllButton" Click="ResetAllButton_Click" Margin="0 0 15 0" Content="Reset All"/>
+                            <Button x:Name="ResetAllButton" Click="ResetAllButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Reset All"/>
                         </StackPanel>
                     </Grid>
 

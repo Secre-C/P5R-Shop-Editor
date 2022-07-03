@@ -4,9 +4,8 @@ using System.IO;
 using System.Text;
 using Amicitia.IO.Binary;
 using Amicitia.IO;
-using shopItems;
 
-namespace shoplogic
+namespace Shop_Editor
 {
     internal class FtdParse
     {
@@ -46,7 +45,7 @@ namespace shoplogic
             List<int> shopCountList = new List<int>(); //just a way to return how many shops there are 
             List<int> shopOffsets = new List<int>(); //offsets for the start of each shop
             List<int> shopItemCount = new List<int>(); //list with the amount of items in each shop
-            
+
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             using (BinaryObjectReader P5FTDFile = new BinaryObjectReader(shopftd, Endianness.Big, Encoding.GetEncoding(932)))
             {

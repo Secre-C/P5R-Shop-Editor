@@ -6,10 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Amicitia.IO;
 using Amicitia.IO.Binary;
-using shopItems;
-using Shop_Editor;
 
-namespace shoplogic
+namespace Shop_Editor
 {
     public class ItemParse
     {
@@ -38,9 +36,8 @@ namespace shoplogic
                 for (int i = 0; i < shopItemCountList[shopInput]; i++)
                 {
                     int shopItemIndexOffset = i * 40;
-                    long startOffset = shopItemIndexOffset + shopOffsets[shopInput];
+                    long startOffset = shopOffsets[shopInput] + shopItemIndexOffset;
                     P5FTDFile.AtOffset(startOffset + 2);
-
                     ushort itemIndex = P5FTDFile.ReadUInt16();
 
                     string[] itemNames;
@@ -66,7 +63,7 @@ namespace shoplogic
                     {
                         itemId = 0;
                     }
-                    shopItemList.Add(itemNames[itemId] + " (" + i + ")");
+                    shopItemList.Add($"{itemNames[itemId]} ({i})");
                 }
                 return shopItemList;
             }

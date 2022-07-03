@@ -6,10 +6,8 @@ using System.IO;
 using System.Threading.Tasks;
 using Amicitia.IO;
 using Amicitia.IO.Binary;
-using shopItems;
-using Shop_Editor;
 
-namespace shoplogic
+namespace Shop_Editor
 {
     public class NameParse
     {
@@ -36,7 +34,7 @@ namespace shoplogic
             using (BinaryObjectReader P5FTDFile = new BinaryObjectReader(shopNameftd, Endianness.Big, Encoding.GetEncoding(932)))
             {
                 uint entryCount = FtdParse.FtdRead(shopNameftd);
-                long nameOffset = 48 + (shopInput * nameLength);
+                long nameOffset = 48 + shopInput * nameLength;
                 P5FTDFile.AtOffset(nameOffset);
                 string shopName = P5FTDFile.ReadString(StringBinaryFormat.FixedLength, nameLength);
                 return shopName;
@@ -53,7 +51,7 @@ namespace shoplogic
                 nameLength = 48;
                 tempName = MainWindow.tempNameR;
             }
-            else 
+            else
             {
                 nameLength = 32;
                 tempName = MainWindow.tempNameV;
@@ -67,7 +65,7 @@ namespace shoplogic
                 uint entryCount = FtdParse.FtdRead(tempName);
                 for (int i = 0; i < entryCount; i++)
                 {
-                    long nameOffset = 48 + (i * nameLength);
+                    long nameOffset = 48 + i * nameLength;
                     P5FTDFile.AtOffset(nameOffset);
                     string shopName = P5FTDFile.ReadString(StringBinaryFormat.FixedLength, nameLength);
                     ShopNameList.Add(shopName + " (" + i + ")");

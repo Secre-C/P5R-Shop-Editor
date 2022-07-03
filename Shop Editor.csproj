@@ -9,14 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="P5%28R%29 Shop Editor\**" />
-    <EmbeddedResource Remove="P5%28R%29 Shop Editor\**" />
-    <None Remove="P5%28R%29 Shop Editor\**" />
-    <Page Remove="P5%28R%29 Shop Editor\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="itemshop.png" />
+    <None Remove="kofi.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,8 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="itemshop.png" />
-    <Resource Include="kofi.png" />
+    <Folder Include="P5%28R%29 Shop Editor\" />
   </ItemGroup>
 
 </Project>
