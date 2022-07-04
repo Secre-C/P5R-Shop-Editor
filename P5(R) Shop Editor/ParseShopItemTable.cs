@@ -17,11 +17,11 @@ namespace Shop_Editor
 
             if (gameVersionIndex == 0)
             {
-                tempFile = MainWindow.tempFileR;
+                tempFile = MainWindow.tempShopR;
             }
             else
             {
-                tempFile = MainWindow.tempFileV;
+                tempFile = MainWindow.tempShopV;
             }
 
             string shopItemftd = tempFile;
@@ -68,6 +68,7 @@ namespace Shop_Editor
                     {
                         itemId = 0;
                     }
+
                     shopItemList.Add($"{itemNames[itemId]} ({i})");
                 }
                 return shopItemList;

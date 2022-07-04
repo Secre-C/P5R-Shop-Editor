@@ -68,7 +68,7 @@ namespace Shop_Editor
                     long nameOffset = 48 + i * nameLength;
                     P5FTDFile.AtOffset(nameOffset);
                     string shopName = P5FTDFile.ReadString(StringBinaryFormat.FixedLength, nameLength);
-                    ShopNameList.Add(shopName + " (" + i + ")");
+                    ShopNameList.Add($"{shopName} ({i})");
                 }
             }
             return ShopNameList;
