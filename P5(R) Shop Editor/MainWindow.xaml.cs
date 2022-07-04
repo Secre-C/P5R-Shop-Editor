@@ -822,6 +822,7 @@ namespace Shop_Editor
         {
             int prevItem = ItemSelectionComboBox.SelectedIndex;
             ShopSelectionComboBox_SelectionChanged(null, null);
+            PopulateItemValues();
             ItemSelectionComboBox.SelectedIndex = prevItem;
         }
         private void CheckForFtdsOnStartup()
