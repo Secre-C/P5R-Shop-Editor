@@ -11,7 +11,7 @@ To use, run the .exe once to create the necessary folders to put your shop ftds 
 
 the program should now open, and you'll be able to edit the shops as you want. Changes made will automatically be saved to a temp file, so you don't need to worry about losing progress when switching shops or even closing the program.
 
-![image](https://user-images.githubusercontent.com/89033534/177062391-18df5c5e-439f-463d-aeb6-918d268de265.png)
+![image](https://user-images.githubusercontent.com/89033534/177224998-b4312b55-905f-4180-9294-2aacc6adc4a7.png)
 
 When you're done editing stuff, click "Save" in order to save the ftd to the output folder. If the amount of items in each shop is the same as in the original file, the program will also generate a Binary patch file (.bp) which you should use *instead* of the output ftd.
 
