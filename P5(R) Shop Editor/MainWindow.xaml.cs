@@ -340,7 +340,7 @@ namespace Shop_Editor
                 return;
             }
 
-            Console.WriteLine("ItemSelectionComboBox_SelectionChanged");
+            //Console.WriteLine("ItemSelectionComboBox_SelectionChanged");
             PopulateItemValues();
         }
 
@@ -352,7 +352,7 @@ namespace Shop_Editor
             }
 
             windowShowFirstTime = true;
-            Console.WriteLine("ItemCategoryComboBox_SelectionChanged");
+            //Console.WriteLine("ItemCategoryComboBox_SelectionChanged");
             int[] itemSectionArray = { 256, 301, 256, 512, 256, 256, 387, 182, 256 };
             int[] itemSectionArrayR = { 296, 301, 512, 696, 256, 256, 651, 286, 256 };
 
@@ -384,7 +384,7 @@ namespace Shop_Editor
                 return;
             }
 
-            Console.WriteLine("ItemIDComboBox_SelectionChanged");
+            //Console.WriteLine("ItemIDComboBox_SelectionChanged");
             short itemID = (short)((ItemCategoryComboBox.SelectedIndex * 0x1000) + ItemIDComboBox.SelectedIndex);
             byte[] shopItemBytes = BitConverter.GetBytes(itemID);
             WriteChangestoTemp(2, 40, shopItemBytes);
@@ -397,7 +397,7 @@ namespace Shop_Editor
             {
                 return;
             }
-            Console.WriteLine("GameVersionComboBox_SelectionChanged");
+            //Console.WriteLine("GameVersionComboBox_SelectionChanged");
 
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
@@ -466,9 +466,9 @@ namespace Shop_Editor
                 return;
             }
 
-            Console.WriteLine("StartMonthBox_SelectionChanged");
+            //Console.WriteLine("StartMonthBox_SelectionChanged");
             var monthIndex = StartMonthBox.SelectedIndex;
-            Console.WriteLine($"month {monthIndex}");
+            //Console.WriteLine($"month {monthIndex}");
             int[] dayArray = GetDayArray();
 
             if (StartDayTextBox.Text == "")
@@ -493,7 +493,7 @@ namespace Shop_Editor
                 return;
             }
 
-            Console.WriteLine("EndMonthBox_SelectionChanged");
+            //Console.WriteLine("EndMonthBox_SelectionChanged");
             var combo = (ComboBox)sender;
             var monthIndex = combo.SelectedIndex;
             int[] dayArray = GetDayArray();
@@ -598,7 +598,7 @@ namespace Shop_Editor
                 return;
             }
 
-            Console.WriteLine("ShopSelectionComboBox_SelectionChanged");
+            //Console.WriteLine("ShopSelectionComboBox_SelectionChanged");
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
             string tempFile;
@@ -631,7 +631,7 @@ namespace Shop_Editor
 
         private void ShopNameTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            Console.WriteLine(sender);
+            //Console.WriteLine(sender);
             if (windowShowFirstTime) //prevent function from running at launch
             {
                 return;
@@ -675,7 +675,7 @@ namespace Shop_Editor
 
         private void PopulateShopNameComboBox()
         {
-            Console.WriteLine("PopulateShopNameComboBox");
+            //Console.WriteLine("PopulateShopNameComboBox");
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
             List<string> ShopNameList = NameParse.MakeShopNameList(gameVersionIndex);
@@ -696,7 +696,7 @@ namespace Shop_Editor
 
         private void PopulateShopInformation()
         {
-            Console.WriteLine("PopulateShopInformation");
+            //Console.WriteLine("PopulateShopInformation");
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
             string tempFile;
@@ -722,7 +722,7 @@ namespace Shop_Editor
         }
         private void PopulateShopItemComboBox()
         {
-            Console.WriteLine("PopulateShopItemComboBox");
+            //Console.WriteLine("PopulateShopItemComboBox");
             int shopID = ShopSelectionComboBox.SelectedIndex;
             
             if (shopID == -1) shopID = 0;
@@ -740,7 +740,7 @@ namespace Shop_Editor
 
         private void PopulateItemValues()
         {
-            Console.WriteLine("PopulateItemValues");
+            //Console.WriteLine("PopulateItemValues");
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
             string tempFile;
@@ -820,7 +820,7 @@ namespace Shop_Editor
         }
         private void PopulateItemIdComboBox()
         {
-            Console.WriteLine("PopulateItemIdComboBox");
+            //Console.WriteLine("PopulateItemIdComboBox");
             string[] itemList;
             List<string> numberedItemList = new();
 
