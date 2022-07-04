@@ -7,11 +7,11 @@ This is a tool for editing all of the regular shops in P5/P5R (not including tak
 
 To use, run the .exe once to create the necessary folders to put your shop ftds in. Once that's done, grab fclPublicShopItemTable.ftd and fclPublicShopName.ftd from data/init/facility.pak/fclTable.bin in your game's files, and drag them into Original/(gameversion).
 
-![image](https://user-images.githubusercontent.com/89033534/177062391-18df5c5e-439f-463d-aeb6-918d268de265.png)
+![image](https://user-images.githubusercontent.com/89033534/177061986-92a73779-747e-4c17-b0cb-6113812ca273.png)
 
 the program should now open, and you'll be able to edit the shops as you want. Changes made will automatically be saved to a temp file, so you don't need to worry about losing progress when switching shops or even closing the program.
 
-![image](https://user-images.githubusercontent.com/89033534/177062019-d717d898-afdd-4106-a53c-fc82e28420d1.png)
+![image](https://user-images.githubusercontent.com/89033534/177062391-18df5c5e-439f-463d-aeb6-918d268de265.png)
 
 When you're done editing stuff, click "Save" in order to save the ftd to the output folder. If the amount of items in each shop is the same as in the original file, the program will also generate a Binary patch file (.bp) which you should use *instead* of the output ftd.
 
