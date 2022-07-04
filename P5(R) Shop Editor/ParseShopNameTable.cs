@@ -14,7 +14,6 @@ namespace Shop_Editor
         public static string PrintShopName(int shopInput, int gameVersionIndex)
         {
             int nameLength;
-            string gameVersion;
             string tempName;
 
             if (gameVersionIndex == 0)
