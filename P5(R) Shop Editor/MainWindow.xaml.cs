@@ -373,6 +373,7 @@ namespace Shop_Editor
             }
             windowShowFirstTime = true;
             Console.WriteLine("GameVersionComboBox_SelectionChanged");
+
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
 
@@ -381,10 +382,12 @@ namespace Shop_Editor
             if (gameVersionIndex == 0)
             {
                 gameVersion = "Royal";
+                tempFile = tempFileR;
             }
             else
             {
                 gameVersion = "Vanilla";
+                tempFile = tempFileV;
             }
 
             if (!File.Exists(Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopItemTable.ftd") || !File.Exists(Directory.GetCurrentDirectory() + $"\\Original\\{gameVersion}\\fclPublicShopName.ftd"))
@@ -405,6 +408,12 @@ namespace Shop_Editor
                 return;
             }
 
+            List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(tempFile, "ShopOffsets");
+
+            if (shopOffsets.Count < ShopSelectionComboBox.SelectedIndex)
+            {
+                ShopSelectionComboBox.SelectedIndex = shopOffsets.Count - 1;
+            }
             //reread shop name list
             PopulateShopNameComboBox();
 
@@ -612,7 +621,6 @@ namespace Shop_Editor
             {
                 structSize = 48;
             }
-
             byte[] nameBytes = Encoding.ASCII.GetBytes(ShopNameTextBox.Text);
             Array.Reverse(nameBytes);
             WriteChangestoTemp(0, structSize, nameBytes);
@@ -661,8 +669,8 @@ namespace Shop_Editor
 
             ShopSelectionComboBox.SelectedIndex = shopIndex;
 
-            PopulateShopInformation();
-
+            //PopulateShopInformation();
+            Console.WriteLine(shopIndex);
             ShopNameTextBox.Text = NameParse.PrintShopName(shopIndex, GameVersionComboBox.SelectedIndex);
         }
 
@@ -687,6 +695,7 @@ namespace Shop_Editor
             var shopIndex = ShopSelectionComboBox.SelectedIndex;
 
             List<int> itemCount = FtdParse.FindShopOffsetsandCount(shopItemftd, "ItemCount");
+
 
             NumOfItemsTextBox.Text = itemCount[shopIndex].ToString();
             ShopIDTextBox.Text = ShopSelectionComboBox.SelectedIndex.ToString();

@@ -30,6 +30,11 @@ namespace Shop_Editor
             List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(shopItemftd, "ShopOffsets");
             List<string> shopItemList = new List<string>();
 
+            if (shopOffsets.Count < shopInput)
+            {
+                shopInput = shopOffsets.Count - 1;
+            }
+
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             using (BinaryObjectReader P5FTDFile = new BinaryObjectReader(shopItemftd, Endianness.Big, Encoding.GetEncoding(932)))
             {
