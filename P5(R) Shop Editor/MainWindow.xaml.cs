@@ -197,6 +197,8 @@ namespace Shop_Editor
             bool changesSaved = false;
             bool bpWritten = false;
             int nameLength = 48;
+            bool shopOutputDelete = false;
+            bool nameOutputDelete = false;
 
             string tempFile = tempShopR;
             string tempName = tempNameR;
@@ -221,6 +223,15 @@ namespace Shop_Editor
                 }
                 else
                 {
+                    if (AreFilesTheSame(40, original))
+                    {
+                        if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd"))
+                        {
+                            File.Delete(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
+                        }
+                        shopOutputDelete = true;
+                    }
+
                     if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Items.bp"))
                     {                                               
                         File.Delete(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Items.bp");
@@ -244,24 +255,48 @@ namespace Shop_Editor
                     {
                         File.Delete(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Names.bp");
                     }
+
+                    if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd"))
+                    {
+                        File.Delete(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd");
+                    }
+                    nameOutputDelete = true;
                 }
                 changesSaved = true;
             }
 
+            string message = "";
+
+            if (shopOutputDelete || nameOutputDelete)
+            {
+                if (!nameOutputDelete)
+                {
+                    message += "Shop output files deleted! ";
+                }
+                else if (!shopOutputDelete)
+                {
+                    message += "Name output files deleted! ";
+                }
+                else
+                {
+                    message += "Shop and Name output files deleted! ";
+                }
+            }
+            
             if (bpWritten)
             {
-                ShowMessage($"Created Binary Patch file (.bp) and saved changes to 'Output\\{gameVersion}'!");
-                ResetAllFields();
+                message += $"Created Binary Patch file (.bp) and saved changes to 'Output\\{gameVersion}'! ";
             }
             else if (changesSaved)
             {
-                ShowMessage($"Changes Saved to 'Output\\{gameVersion}'!");
-                ResetAllFields();
+                message += $"Changes Saved to 'Output\\{gameVersion}'! ";
             }
             else
             {
-                ShowMessage("No new changes have been made!");
+                message += "No new changes have been made! ";
             }
+
+            ShowMessage(message);
         } 
 
         private void AddNewItemButton_Click(object sender, RoutedEventArgs e)
