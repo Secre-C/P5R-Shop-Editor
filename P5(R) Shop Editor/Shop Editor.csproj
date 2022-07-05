@@ -6,6 +6,7 @@
     <RootNamespace>Shop_Editor</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>itemshop.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +18,10 @@
 
   <ItemGroup>
     <None Remove="itemshop.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="itemshop.ico" />
   </ItemGroup>
 
   <ItemGroup>
