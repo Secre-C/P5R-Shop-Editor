@@ -18,10 +18,10 @@ namespace Shop_Editor
     public partial class MainWindow : Window
     {
         private bool windowShowFirstTime = true;
-        public static string tempShopV = "";
-        public static string tempShopR = "";
-        public static string tempNameV = "";
-        public static string tempNameR = "";
+        public static string tempShopV;
+        public static string tempShopR;
+        public static string tempNameV;
+        public static string tempNameR;
 
         public MainWindow()
         {
@@ -1367,7 +1367,6 @@ namespace Shop_Editor
                 }
             }
 
-            List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(tempFile, "ShopOffsets");
 
             if (structSize != 40)
             {
@@ -1375,6 +1374,7 @@ namespace Shop_Editor
             }
             else
             {
+                List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(tempFile, "ShopOffsets");
                 itemOffset = shopOffsets[shopID] + (shopItemIndex * 40);
             }
 
@@ -1413,10 +1413,10 @@ namespace Shop_Editor
         {
             string tempFilePath = System.IO.Path.GetTempPath();
 
-            tempShopV = tempFilePath + "TempShopV.ftd";
-            tempShopR = tempFilePath + "TempShopR.ftd";
-            tempNameV = tempFilePath + "TempNameV.ftd";
-            tempNameR = tempFilePath + "TempNameR.ftd";
+            tempShopV = tempFilePath + "\\TempShopV.ftd";
+            tempShopR = tempFilePath + "\\TempShopR.ftd";
+            tempNameV = tempFilePath + "\\TempNameV.ftd";
+            tempNameR = tempFilePath + "\\TempNameR.ftd";
 
             if (!File.Exists(tempShopV))
             {
