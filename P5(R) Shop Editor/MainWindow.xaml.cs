@@ -643,7 +643,7 @@ namespace Shop_Editor
                 structSize = 48;
             }
 
-            byte[] nameBytes = Encoding.ASCII.GetBytes(ShopNameTextBox.Text);
+            byte[] nameBytes = Encoding.GetEncoding(932).GetBytes(ShopNameTextBox.Text);
             Array.Reverse(nameBytes);
             WriteChangestoTemp(0, structSize, nameBytes);
             PopulateShopNameComboBox();
@@ -1383,7 +1383,7 @@ namespace Shop_Editor
 
             ReplaceBytes(tempFile, itemOffset, newBytes, byteArrayLength);
 
-            string newName = System.Text.Encoding.UTF8.GetString(newBytes, 0, newBytes.Length);
+            string newName = System.Text.Encoding.GetEncoding(932).GetString(newBytes, 0, newBytes.Length);
 
             if (structSize != 40)
             {
