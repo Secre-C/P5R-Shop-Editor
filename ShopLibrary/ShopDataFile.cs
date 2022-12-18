@@ -4,34 +4,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace ShopLibrary
 {
-    public class ShopNameFile
+    public class ShopDataFile
     {
         public FtdHeader FtdHeader { get; set; }
         public FtdList FtdList { get; set; }
-        public List<ShopNames> ShopNames{get; set;}
+        public List<ShopData> ShopData { get; set; }
 
-        public ShopNameFile Read(string shopNameFile)
+        public ShopDataFile Read(string shopDataFile)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            var reader = new BinaryObjectReader(shopNameFile, Endianness.Big, Encoding.GetEncoding(932));
+            var reader = new BinaryObjectReader(shopDataFile, Endianness.Big, Encoding.GetEncoding(932));
 
             FtdHeader = new FtdHeader().Read(reader);
             FtdList = new FtdList().Read(reader);
-            ShopNames = new List<ShopNames>();
+            ShopData = new List<ShopData>();
 
-            for (int i = 0; i < FtdList.EntryCount; i ++)
+            for (int i = 0; i < FtdList.EntryCount; i++)
             {
-                ShopNames.Add(new ShopNames().Read(reader));
+                ShopData.Add(new ShopData().Read(reader));
             }
 
             return this;
         }
 
-        public void Write(string newShopNameFile, ShopNameFile shopNameFile)
+        public void Write(string newShopDataFile, ShopDataFile shopDataFile)
         {
 
         }

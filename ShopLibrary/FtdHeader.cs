@@ -27,5 +27,10 @@ namespace ShopLibrary
             unk2 = reader.ReadInt32();
             return this;
         }
+
+        public void Write(BinaryObjectWriter writer, FtdHeader ftdHeader)
+        {
+
+        }
     }
 }

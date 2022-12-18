@@ -14,6 +14,7 @@ namespace ShopLibrary
         public uint EntryCount { get; private set; }
         public short EntryType { get; private set; }
         public short unk1 { get; private set; }
+        public short EntrySize { get; private set; }
 
         public FtdList Read(BinaryObjectReader reader)
         {
@@ -23,6 +24,11 @@ namespace ShopLibrary
             EntryType = reader.ReadInt16();
             unk1 = reader.ReadInt16();
             return this;
+        }
+
+        public void write(BinaryObjectWriter writer, FtdList ftdList)
+        {
+
         }
     }
 }

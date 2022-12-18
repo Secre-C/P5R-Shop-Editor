@@ -32,5 +32,10 @@ namespace ShopLibrary
 
             return this;
         }
+
+        public void Write(BinaryObjectWriter writer, Shop shop)
+        {
+
+        }
     }
 }

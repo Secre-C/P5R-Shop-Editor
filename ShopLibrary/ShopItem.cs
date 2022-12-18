@@ -60,7 +60,7 @@ namespace ShopLibrary
 
             return this;
         }
-        public void write(BinaryObjectWriter writer)
+        public void write(BinaryObjectWriter writer, ShopItem shopItem)
         {
 
         }

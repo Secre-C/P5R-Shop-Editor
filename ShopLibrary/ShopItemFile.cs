@@ -30,5 +30,10 @@ namespace ShopLibrary
 
             return this;
         }
+
+        public void Write(string newShopItemFile, ShopItemFile shopItemFile)
+        {
+
+        }
     }
 }

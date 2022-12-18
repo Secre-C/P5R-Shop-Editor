@@ -15,5 +15,10 @@ namespace ShopLibrary
             Name = reader.ReadString(StringBinaryFormat.FixedLength, 48);
             return this;
         }
+
+        public void Write(BinaryObjectWriter writer, ShopNames shopNames)
+        {
+
+        }
     }
 }
