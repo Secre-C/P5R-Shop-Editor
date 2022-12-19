@@ -6,7 +6,7 @@ namespace ShopLibrary
     {
         public int Field00 { get; private set; }
         public int Magic { get; private set; }
-        public uint FileSize { get; private set; }
+        public uint FileSize { get; internal set; }
         public short DataType { get; private set; }
         public short DataCount{ get; private set; }
         public int[] DataOffsets { get; private set; }
@@ -30,7 +30,15 @@ namespace ShopLibrary
 
         public void Write(BinaryObjectWriter writer, FtdHeader ftdHeader)
         {
-
+            writer.Write(Field00);
+            writer.Write(Magic);
+            writer.Write(FileSize);
+            writer.Write(DataType);
+            writer.Write(DataCount);
+            writer.WriteArray(DataOffsets);
+            writer.Write(unk0);
+            writer.Write(unk1);
+            writer.Write(unk2);
         }
     }
 }

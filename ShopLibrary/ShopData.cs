@@ -25,7 +25,9 @@ namespace ShopLibrary
 
         public void Write(BinaryObjectWriter writer, ShopData shopData)
         {
-
+            writer.Write(BannerId);
+            writer.Write((byte)(HideBanner == true ? 1 : 0));
+            writer.Write(ShopMode);
         }
     }
 }

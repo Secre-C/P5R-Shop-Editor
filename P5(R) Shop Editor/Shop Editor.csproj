@@ -30,6 +30,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ShopLibrary\ShopLibrary.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Amicitia.IO">
       <HintPath>D:\Github\Amicitia.IO\src\Amicitia.IO\bin\Release\netstandard2.1\Amicitia.IO.dll</HintPath>
     </Reference>

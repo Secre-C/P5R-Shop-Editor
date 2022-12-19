@@ -18,7 +18,7 @@ namespace ShopLibrary
 
         public void Write(BinaryObjectWriter writer, ShopNames shopNames)
         {
-
+            writer.WriteString(StringBinaryFormat.FixedLength, shopNames.Name, 48);
         }
     }
 }

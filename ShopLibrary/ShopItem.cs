@@ -60,37 +60,56 @@ namespace ShopLibrary
 
             return this;
         }
-        public void write(BinaryObjectWriter writer, ShopItem shopItem)
+        public void Write(BinaryObjectWriter writer, ShopItem shopItem)
         {
-
+            writer.Write(shopItem.ShopEndIndicator); 
+            writer.Write(shopItem.unk0);
+            writer.Write(shopItem.ItemId.data); 
+            writer.Write(shopItem.AmountPerUnit); 
+            writer.Write(shopItem.AvailabilityStartMonth); 
+            writer.Write(shopItem.AvailabilityStartDay); 
+            writer.Write(shopItem.AvailabilityEndMonth); 
+            writer.Write(shopItem.AvailabilityEndDay); 
+            writer.Write(shopItem.unk1); 
+            writer.Write(shopItem.Quantity); 
+            writer.Write(shopItem.Quantity2); 
+            writer.Write(shopItem.Quantity3); 
+            writer.Write(shopItem.unk2); 
+            writer.Write(shopItem.unk3); 
+            writer.Write(shopItem.unk4); 
+            writer.Write(shopItem.unk5); 
+            writer.Write(shopItem.Bitflag.ConvertedBitflag); 
+            writer.Write(shopItem.unk6); 
+            writer.Write(shopItem.PercentageOfPrice); 
+            writer.Write(shopItem.unk7); 
         }
 
-        public ShopItem GenerateEndEntry()
+        public void GenerateEndEntry(ref ShopItem endShopEntry)
         {
-            ShopEndIndicator = 0x9D;
-            unk0 = 0;
-            ItemId = new Item();
-            ItemId.data = 0;
-            AmountPerUnit = 0;
-            AvailabilityStartMonth = 0;
-            AvailabilityStartDay = 0;
-            AvailabilityEndMonth = 0;
-            AvailabilityEndDay = 0;
-            unk1 = 0;
-            Quantity = 0;
-            Quantity2 = 0;
-            Quantity3 = 0;
-            unk2 = 0;
-            unk3 = 0;
-            unk4 = 0;
-            unk5 = 0;
-            Bitflag = new Bitflag();
-            Bitflag.data = 0;
-            unk6 = 0;
-            PercentageOfPrice = 0;
-            unk7 = 0;
+            endShopEntry.ShopEndIndicator = 0x9D;
+            endShopEntry.unk0 = 0;
+            endShopEntry.ItemId = new Item();
+            endShopEntry.ItemId.data = 0;
+            endShopEntry.AmountPerUnit = 0;
+            endShopEntry.AvailabilityStartMonth = 0;
+            endShopEntry.AvailabilityStartDay = 0;
+            endShopEntry.AvailabilityEndMonth = 0;
+            endShopEntry.AvailabilityEndDay = 0;
+            endShopEntry.unk1 = 0;
+            endShopEntry.Quantity = 0;
+            endShopEntry.Quantity2 = 0;
+            endShopEntry.Quantity3 = 0;
+            endShopEntry.unk2 = 0;
+            endShopEntry.unk3 = 0;
+            endShopEntry.unk4 = 0;
+            endShopEntry.unk5 = 0;
+            endShopEntry.Bitflag = new Bitflag();
+            endShopEntry.Bitflag.data = 0;
+            endShopEntry.unk6 = 0;
+            endShopEntry.PercentageOfPrice = 0;
+            endShopEntry.unk7 = 0;
 
-            return this;
+            endShopEntry = this;
         }
     }
     public class Item
@@ -126,7 +145,7 @@ namespace ShopLibrary
         public int ConvertedBitflag
         {
             get { return SumRoyalFlag(this); }
-            set { data += value; }
+            set { data = value; }
         }
 
         public short SumRoyalFlag(Bitflag bitflag)
