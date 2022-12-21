@@ -119,7 +119,7 @@
                     <!--Shop Selection-->
                     <StackPanel Grid.Row="1">
                         <TextBlock Text="Shop Selection" />
-                        <ComboBox x:Name="ShopSelectionComboBox" SelectionChanged="ShopSelectionComboBox_SelectionChanged" SelectedIndex="0" Style="{DynamicResource DarkComboBox}" Foreground="#e6e6e6" Margin="0 0 15 15" Grid.Column="0" />
+                        <ComboBox x:Name="ShopSelectionComboBox" SelectionChanged="ShopSelectionComboBox_SelectionChanged" Style="{DynamicResource DarkComboBox}" Foreground="#e6e6e6" Margin="0 0 15 15" Grid.Column="0"/>
                     </StackPanel>
 
                     <Grid Grid.Row="2" Margin="0 0" Width="384" HorizontalAlignment="Left">
@@ -149,7 +149,7 @@
                     <!--Item Selection-->
                     <StackPanel Grid.Row="4" Margin="0 15 15 0">
                         <TextBlock Text="Item Selection" />
-                        <ListBox x:Name="ItemSelectionComboBox" SelectionChanged="ItemSelectionComboBox_SelectionChanged" SelectedIndex="0" Height="216.9" Background="#20202020" Foreground="#fff"/>
+                        <ListBox x:Name="ItemSelectionComboBox" SelectionChanged="ItemSelectionComboBox_SelectionChanged" Height="216.9" Background="#20202020" Foreground="#fff"/>
                     </StackPanel>
                 </Grid>
                 <Grid Grid.Column="1" Width="384" HorizontalAlignment="Center" VerticalAlignment="Stretch">
@@ -175,16 +175,16 @@
                         <!--Item Category-->
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Item Category" />
-                            <ComboBox Style="{DynamicResource DarkComboBox}" x:Name="ItemCategoryComboBox" SelectionChanged="ItemCategoryComboBox_SelectionChanged" SelectedIndex="0" Foreground="#e6e6e6" Margin="0 0 15 0">
-                                <ComboBoxItem>Melee Weapons</ComboBoxItem>
-                                <ComboBoxItem>Armor</ComboBoxItem>
-                                <ComboBoxItem>Accessories</ComboBoxItem>
-                                <ComboBoxItem>Consumables</ComboBoxItem>
-                                <ComboBoxItem>Key Items</ComboBoxItem>
-                                <ComboBoxItem>Materials</ComboBoxItem>
-                                <ComboBoxItem>Skill Cards</ComboBoxItem>
-                                <ComboBoxItem>Outfits</ComboBoxItem>
-                                <ComboBoxItem>Ranged Weapons</ComboBoxItem>
+                            <ComboBox Style="{DynamicResource DarkComboBox}" x:Name="ItemCategoryComboBox" SelectionChanged="ItemCategoryComboBox_SelectionChanged" Foreground="#e6e6e6" Margin="0 0 15 0">
+                                <ComboBoxItem>Melee Weapons (0)</ComboBoxItem>
+                                <ComboBoxItem>Armor (1)</ComboBoxItem>
+                                <ComboBoxItem>Accessories (2)</ComboBoxItem>
+                                <ComboBoxItem>Consumables (3)</ComboBoxItem>
+                                <ComboBoxItem>Key Items (4)</ComboBoxItem>
+                                <ComboBoxItem>Materials (5)</ComboBoxItem>
+                                <ComboBoxItem>Skill Cards (6)</ComboBoxItem>
+                                <ComboBoxItem>Outfits (7)</ComboBoxItem>
+                                <ComboBoxItem>Ranged Weapons (8)</ComboBoxItem>
                             </ComboBox>
                         </StackPanel>
 
@@ -205,13 +205,13 @@
                         <!--Availability Start Day-->
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="Start Day" FontWeight="Bold"/>
-                            <TextBox x:Name="StartDayTextBox" TextChanged="StartDayTextBox_TextChanged" Text="1" PreviewTextInput="StartDayValidationTextBox" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Height="21.96" />
+                            <TextBox x:Name="StartDayTextBox" TextChanged="StartDayTextBox_TextChanged" PreviewTextInput="StartDayValidationTextBox" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Height="21.96" />
                         </StackPanel>
 
                         <!--Availability Start Month-->
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Start Month" FontWeight="Bold"/>
-                            <ComboBox SelectionChanged="StartMonthBox_SelectionChanged" x:Name="StartMonthBox" SelectedIndex="0" Style="{DynamicResource DarkComboBox}" Foreground="#e6e6e6" Margin="0 0 15 0">
+                            <ComboBox SelectionChanged="StartMonthBox_SelectionChanged" x:Name="StartMonthBox" Style="{DynamicResource DarkComboBox}" Foreground="#e6e6e6" Margin="0 0 15 0">
                                 <ComboBoxItem>January</ComboBoxItem>
                                 <ComboBoxItem>February</ComboBoxItem>
                                 <ComboBoxItem>March</ComboBoxItem>
@@ -230,13 +230,13 @@
                         <!--Availability End Day-->
                         <StackPanel Grid.Column="3">
                             <TextBlock Text="End Day" FontWeight="Bold"/>
-                            <TextBox x:Name="EndDayTextBox" TextChanged="EndDayTextBox_TextChanged" Text="1" PreviewTextInput="EndDayValidationTextBox" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Height="21.96" />
+                            <TextBox x:Name="EndDayTextBox" TextChanged="EndDayTextBox_TextChanged" PreviewTextInput="EndDayValidationTextBox" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Height="21.96" />
                         </StackPanel>
 
                         <!--Availability End Month-->
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="End Month" FontWeight="Bold"/>
-                            <ComboBox SelectionChanged="EndMonthBox_SelectionChanged" x:Name="EndMonthBox" SelectedIndex="0" Style="{DynamicResource DarkComboBox}" Foreground="#e6e6e6" Margin="0 0 15 0">
+                            <ComboBox SelectionChanged="EndMonthBox_SelectionChanged" x:Name="EndMonthBox" Style="{DynamicResource DarkComboBox}" Foreground="#e6e6e6" Margin="0 0 15 0">
                                 <ComboBoxItem>January</ComboBoxItem>
                                 <ComboBoxItem>February</ComboBoxItem>
                                 <ComboBoxItem>March</ComboBoxItem>
@@ -269,7 +269,7 @@
                         <!--Quantity-->
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="Quantity" FontWeight="Bold"/>
-                            <TextBox x:Name="QuantityTextBox" Text="1" TextChanged="QuantityTextBox_TextChanged" PreviewTextInput="UByteValidationTextBox" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Height="21.96"/>
+                            <TextBox x:Name="QuantityTextBox" TextChanged="QuantityTextBox_TextChanged" PreviewTextInput="UByteValidationTextBox" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Height="21.96"/>
                         </StackPanel>
 
                         <!--Item Quantity Acquired per unit purchased-->
@@ -288,13 +288,13 @@
                         <!--Price Percentage-->
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Amount Acquired Per Unit" />
-                            <TextBox x:Name="AmountPerUnitTextBox" TextChanged="AmountPerUnitTextBox_TextChanged" PreviewTextInput="UByteValidationTextBox" Background="#2a2a2a" Foreground="#e6e6e6" Text="1" Margin="0 0 15 0" Height="21.96"/>
+                            <TextBox x:Name="AmountPerUnitTextBox" TextChanged="AmountPerUnitTextBox_TextChanged" PreviewTextInput="UByteValidationTextBox" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Height="21.96"/>
                         </StackPanel>
 
                         <!--Required Bitflag-->
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="Required Bitflag (-1 for none)" FontWeight="Bold"/>
-                            <TextBox x:Name="RequiredBitflagTextBox" TextChanged="RequiredBitflagTextBox_TextChanged" Background="#2a2a2a" Foreground="#e6e6e6" PreviewTextInput="IntValidationTextBox" Text="-1" Margin="0 0 15 0" Height="21.96" />
+                            <TextBox x:Name="RequiredBitflagTextBox" TextChanged="RequiredBitflagTextBox_TextChanged" Background="#2a2a2a" Foreground="#e6e6e6" PreviewTextInput="IntValidationTextBox" Margin="0 0 15 0" Height="21.96" />
                         </StackPanel>
 
                     </Grid>

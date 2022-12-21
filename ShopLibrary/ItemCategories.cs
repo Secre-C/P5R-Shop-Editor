@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ShopLibrary
@@ -18,17 +19,21 @@ namespace ShopLibrary
         public string[] Outfits { get; set; }
         public string[] RangedWeapons { get; set; }
 
-        enum Category
+        public static List<string[]> GetItemList(string gameVer)
         {
-            Melee = 0,
-            Armor = 1,
-            Accessories = 2,
-            Consumables = 3,
-            KeyItems = 4,
-            Materials = 5,
-            SkillCards = 6,
-            Outfits = 7,
-            Ranged = 8
+            List<string[]> ItemList = new List<string[]>();
+            ItemCategories itemCategories = JsonSerializer.Deserialize<ItemCategories>(File.ReadAllText($"C:\\Users\\Gabriel Premore\\source\\repos\\Shop Editor\\ShopLibrary\\P5R Items\\{gameVer}Items.Json"));
+
+            ItemList.Add( itemCategories.MeleeWeapons);
+            ItemList.Add( itemCategories.Armors);
+            ItemList.Add( itemCategories.Accessories);
+            ItemList.Add( itemCategories.Consumables);
+            ItemList.Add( itemCategories.KeyItems);
+            ItemList.Add( itemCategories.Materials);
+            ItemList.Add( itemCategories.SkillCards);
+            ItemList.Add( itemCategories.Outfits);
+            ItemList.Add( itemCategories.RangedWeapons);
+            return ItemList;
         }
     }
 }

@@ -38,7 +38,7 @@ namespace ShopLibrary
             ShopEndIndicator = reader.ReadByte();
             unk0 = reader.ReadByte();
             ItemId = new Item();
-            ItemId.data = reader.ReadInt16();
+            ItemId.data = reader.ReadUInt16();
             AmountPerUnit = reader.ReadByte();
             AvailabilityStartMonth = reader.ReadByte();
             AvailabilityStartDay = reader.ReadByte();
@@ -111,20 +111,48 @@ namespace ShopLibrary
 
             endShopEntry = this;
         }
+
+        public void GenerateDummyEntry(ref ShopItem endShopEntry)
+        {
+            endShopEntry.ShopEndIndicator = 0x00;
+            endShopEntry.unk0 = 0;
+            endShopEntry.ItemId = new Item();
+            endShopEntry.ItemId.data = 0;
+            endShopEntry.AmountPerUnit = 0;
+            endShopEntry.AvailabilityStartMonth = 0;
+            endShopEntry.AvailabilityStartDay = 0;
+            endShopEntry.AvailabilityEndMonth = 0;
+            endShopEntry.AvailabilityEndDay = 0;
+            endShopEntry.unk1 = 0;
+            endShopEntry.Quantity = 0;
+            endShopEntry.Quantity2 = 0;
+            endShopEntry.Quantity3 = 0;
+            endShopEntry.unk2 = 0;
+            endShopEntry.unk3 = 0;
+            endShopEntry.unk4 = 0;
+            endShopEntry.unk5 = 0;
+            endShopEntry.Bitflag = new Bitflag();
+            endShopEntry.Bitflag.data = 0;
+            endShopEntry.unk6 = 0;
+            endShopEntry.PercentageOfPrice = 0;
+            endShopEntry.unk7 = 0;
+
+            endShopEntry = this;
+        }
     }
     public class Item
     {
-        internal short data { get; set; }
+        internal ushort data { get; set; }
 
-        public short ItemCategory
+        public ushort ItemCategory
         {
-            get { return (short)(data >> 12); }
-            set { data = (short)(value << 12); }
+            get { return (ushort)(data >> 12); }
+            set { data = (ushort)(value << 12); }
         }
 
-        public short ItemIndex
+        public ushort ItemIndex
         {
-            get { return (short)(data & 0xFFF); }
+            get { return (ushort)(data & 0xFFF); }
             set { data += value; }
         }
     }

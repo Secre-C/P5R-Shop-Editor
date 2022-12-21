@@ -26,11 +26,15 @@ namespace ShopLibrary
                     endOfShop = true;
             }
 
+            Items.RemoveAt(Items.Count - 1);
             return this;
         }
 
         public void Write(BinaryObjectWriter writer, Shop shop)
         {
+            CreateEndEntry(out var endEntry);
+            shop.Items.Add(endEntry);
+
             var asSpan = CollectionsMarshal.AsSpan(shop.Items);
 
             foreach (var item in asSpan)
@@ -43,6 +47,12 @@ namespace ShopLibrary
         {
             endShopItem = new();
             endShopItem.GenerateEndEntry(ref endShopItem);
+        }
+
+        public void CreateDummyEntry(out ShopItem endShopItem)
+        {
+            endShopItem = new();
+            endShopItem.GenerateDummyEntry(ref endShopItem);
         }
     }
 }

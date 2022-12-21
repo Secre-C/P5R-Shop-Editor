@@ -12,7 +12,6 @@ namespace ShopLibrary
     {
         public FtdHeader FtdHeader { get; set; }
         public FtdList FtdList { get; set; }
-        public List<int> ShopOffsets { get; set; }
         public List<Shop> Shops { get; set; }
         public byte[] EndOfFile { get; set; }
 
@@ -25,7 +24,7 @@ namespace ShopLibrary
             FtdList = new FtdList().Read(reader);
             Shops = new List<Shop>();
 
-            for (int i = 0; i < FtdList.EntryCount; i += Shops[Shops.Count - 1].Items.Count)
+            for (int i = 0; i < FtdList.EntryCount; i += Shops[Shops.Count - 1].Items.Count + 1)
             {
                 Shops.Add(new Shop().Read(reader));
             }
@@ -79,7 +78,7 @@ namespace ShopLibrary
         {
             var blankShop = new Shop();
             blankShop.Items = new();
-            blankShop.CreateEndEntry(out var blankEntry);
+            blankShop.CreateDummyEntry(out var blankEntry);
             blankShop.Items.Add(blankEntry);
             shopItemFileModel.Shops.Insert(shopInsertIndex, blankShop);
 

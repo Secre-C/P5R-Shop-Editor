@@ -1,4 +1,6 @@
 ﻿using Amicitia.IO.Binary;
+using Microsoft.Win32;
+using ShopLibrary;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace Shop_Editor
 {
@@ -17,7 +20,15 @@ namespace Shop_Editor
     /// </summary>
     public partial class MainWindow : Window
     {
-        private bool windowShowFirstTime = true;
+        public ShopItemFile ShopItemFile { get; set; }
+        public ShopNameFile ShopNameFile { get; set; }
+        public ShopDataFile ShopDataFile { get; set; }
+
+        public List<string[]> FullItemList { get; set; }
+        public List<string> ShopItemBoxList{ get; set; }
+        public int SelectedShop { get; set; } = -1;
+        public int SelectedItem { get; set; } = -1;
+
         public static string tempShopV;
         public static string tempShopR;
         public static string tempNameV;
@@ -25,51 +36,59 @@ namespace Shop_Editor
 
         public MainWindow()
         {
+            InitializeComponent();
             CreateTempFiles();
             CreateDirectories();
-            InitializeComponent();
             CheckForFtdsOnStartup();
-            PopulateShopItemComboBox();
-            PopulateItemIdComboBox();
+
+            new ShopItemFile().Read(tempShopR, out var shopItemFile);
+            ShopItemFile = shopItemFile;
+
+            new ShopNameFile().Read(tempNameR, out var shopNameFile);
+            ShopNameFile = shopNameFile;
+
+            //new ShopDataFile().Read(tempShopR, out var shopDataFile);
+            //ShopItemFile = shopItemFile;
+
+            FullItemList = ItemCategories.GetItemList("P5R");
+
+            StartupPopulate();
+            //ResetAllFields();
+        }
+        private void StartupPopulate()
+        {
             PopulateShopNameComboBox();
-            PopulateItemValues();
-            ResetAllFields();
-            windowShowFirstTime = false;
+        }
+        private void ClearAllFields()
+        {
+            ItemSelectionComboBox.SelectedIndex  = -1;
+
+            ItemCategoryComboBox.SelectedIndex  = -1;
+            ItemIDComboBox.SelectedIndex        = -1;
+            AmountPerUnitTextBox.Text           = "";
+            StartMonthBox.SelectedIndex         = -1;
+            StartDayTextBox.Text                = "";
+            EndMonthBox.SelectedIndex           = -1;
+            EndDayTextBox.Text                  = "";
+            QuantityTextBox.Text                = "";
+            RequiredBitflagTextBox.Text         = "";
+            PricePercentageTextBox.Text         = "";
         }
         private void StartDayValidationTextBox(object sender, TextCompositionEventArgs e)
         {
-            e.Handled = !IsDayValid(((TextBox)sender).Text + e.Text, StartMonthBox);
+            e.Handled = !TextValidation.IsDayValid(((TextBox)sender).Text + e.Text, StartMonthBox);
         }
         private void EndDayValidationTextBox(object sender, TextCompositionEventArgs e)
         {
-            e.Handled = !IsDayValid(((TextBox)sender).Text + e.Text, EndMonthBox);
+            e.Handled = !TextValidation.IsDayValid(((TextBox)sender).Text + e.Text, EndMonthBox);
         }
         private void UByteValidationTextBox(object sender, TextCompositionEventArgs e)
         {
-            e.Handled = !IsValidUByte(((TextBox)sender).Text + e.Text);
+            e.Handled = !TextValidation.IsValidUByte(((TextBox)sender).Text + e.Text);
         }
         private void IntValidationTextBox(object sender, TextCompositionEventArgs e)
         {
-            e.Handled = !IsValidInt(((TextBox)sender).Text + e.Text);
-        }
-
-        public static bool IsValidInt(string str)
-        {
-            if (str == "-") return true;
-            return int.TryParse(str, out int i) && i >= -1 && i <= 2147483647;
-        }
-
-        public static bool IsValidUByte(string str)
-        {
-            return int.TryParse(str, out int i) && i >= 0 && i <= 255;
-        }
-
-        public static bool IsDayValid(string str, object sender)
-        {
-            int[] dayArray = GetDayArray();
-            var combo = (ComboBox)sender;
-            var monthIndex = combo.SelectedIndex;
-            return int.TryParse(str, out int i) && i >= 1 && i <= dayArray[monthIndex];
+            e.Handled = !TextValidation.IsValidInt(((TextBox)sender).Text + e.Text);
         }
 
         private void KofiLink_Click(object sender, RoutedEventArgs e)
@@ -191,119 +210,22 @@ namespace Shop_Editor
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            int original = 0;
-            int output = 1;
-            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
-            bool changesSaved = false;
-            bool bpWritten = false;
-            int nameLength = 48;
-            bool shopOutputDelete = false;
-            bool nameOutputDelete = false;
+            var saveDialog = new CommonOpenFileDialog();
+            saveDialog.IsFolderPicker = true;
+            saveDialog.Title = "Select Directory to save files to.";
 
-            string tempFile = tempShopR;
-            string tempName = tempNameR;
-            string gameVersion = "Royal";
-            
-            if (gameVersionIndex == 1)
+            if (saveDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                nameLength = 32;
-                tempFile = tempShopV;
-                tempName = tempNameV;
-                gameVersion = "Vanilla";
+                ShopItemFile.Write($"{saveDialog.FileName}/fclPublicShopItemTable.ftd", ShopItemFile);
+                ShopNameFile.Write($"{saveDialog.FileName}/fclPublicShopName.ftd", ShopNameFile);
             }
-
-            if (!AreFilesTheSame(40, output))
-            {
-                File.Copy(tempFile, Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd", true);
-
-                if (AreEntryCountsEqual(original) && !AreFilesTheSame(40, original))
-                {
-                    WriteBinaryPatch(40);
-                    bpWritten = true;
-                }
-                else
-                {
-                    if (AreFilesTheSame(40, original))
-                    {
-                        if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd"))
-                        {
-                            File.Delete(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopItemTable.ftd");
-                        }
-                        shopOutputDelete = true;
-                    }
-
-                    if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Items.bp"))
-                    {                                               
-                        File.Delete(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Items.bp");
-                    }
-                }
-                changesSaved = true;
-            }
-
-            if (!AreFilesTheSame(nameLength, output))
-            {
-                File.Copy(tempName, Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd", true);
-
-                if (!AreFilesTheSame(nameLength, original))
-                {
-                    WriteBinaryPatch(nameLength);
-                    bpWritten = true;
-                }
-                else
-                {
-                    if(File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Names.bp"))
-                    {
-                        File.Delete(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\Shop_Names.bp");
-                    }
-
-                    if (File.Exists(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd"))
-                    {
-                        File.Delete(Directory.GetCurrentDirectory() + $"\\Output\\{gameVersion}\\fclPublicShopName.ftd");
-                    }
-                    nameOutputDelete = true;
-                }
-                changesSaved = true;
-            }
-
-            string message = "";
-
-            if (shopOutputDelete || nameOutputDelete)
-            {
-                if (!nameOutputDelete)
-                {
-                    message += "Shop output files deleted! ";
-                }
-                else if (!shopOutputDelete)
-                {
-                    message += "Name output files deleted! ";
-                }
-                else
-                {
-                    message += "Shop and Name output files deleted! ";
-                }
-            }
-            
-            if (bpWritten)
-            {
-                message += $"Created Binary Patch file (.bp) and saved changes to 'Output\\{gameVersion}'! ";
-            }
-            else if (changesSaved)
-            {
-                message += $"Changes Saved to 'Output\\{gameVersion}'! ";
-            }
-            else
-            {
-                message += "No new changes have been made! ";
-            }
-
-            ShowMessage(message);
         } 
 
         private void AddNewItemButton_Click(object sender, RoutedEventArgs e)
         {
             AddItemSlot();
 
-            ItemSelectionComboBox.SelectedIndex += 1;
+            SelectedItem += 1;
 
             PopulateItemValues();
             PopulateShopInformation();
@@ -324,7 +246,7 @@ namespace Shop_Editor
             string itemDeleteMessage = $"Selected item has been removed!";
 
             RemoveItemSlot();
-            ItemSelectionComboBox.SelectedIndex -= 1;
+            SelectedItem -= 1;
 
             PopulateItemValues();
 
@@ -335,69 +257,54 @@ namespace Shop_Editor
         }
         private void ItemSelectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (windowShowFirstTime)
-            {
-                return;
-            }
+            SelectedItem = ItemSelectionComboBox.SelectedIndex;
 
-            //Console.WriteLine("ItemSelectionComboBox_SelectionChanged");
+            if (SelectedItem == -1)
+                return;
+
+            DebugLog("ItemSelectionComboBox_SelectionChanged");
+
             PopulateItemValues();
+
+            return;
         }
 
         private void ItemCategoryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (windowShowFirstTime)
-            {
+            if (SelectedItem == -1)
                 return;
-            }
 
-            windowShowFirstTime = true;
-            //Console.WriteLine("ItemCategoryComboBox_SelectionChanged");
-            int[] itemSectionArray = { 256, 301, 256, 512, 256, 256, 387, 182, 256 };
-            int[] itemSectionArrayR = { 296, 301, 512, 696, 256, 256, 651, 286, 256 };
+            DebugLog("ItemCategoryComboBox_SelectionChanged");
 
-            if (GameVersionComboBox.SelectedIndex == 0)
-            {
-                if (Convert.ToInt32(ItemIDComboBox.SelectedIndex) > itemSectionArrayR[ItemCategoryComboBox.SelectedIndex] - 1)
-                {
-                    ItemIDComboBox.SelectedIndex = (itemSectionArrayR[ItemCategoryComboBox.SelectedIndex] - 1);
-                }
-            }
-            else
-            {
-                if (Convert.ToInt32(ItemIDComboBox.SelectedIndex) > itemSectionArray[ItemCategoryComboBox.SelectedIndex] - 1)
-                {
-                    ItemIDComboBox.SelectedIndex = (itemSectionArray[ItemCategoryComboBox.SelectedIndex] - 1);
-                }
-            }
-            windowShowFirstTime = false;
-            byte categoryByte = (byte)((ItemCategoryComboBox.SelectedIndex * 0x1000 + ItemIDComboBox.SelectedIndex) / 0x100);
-            byte[] shopItemBytes = { categoryByte };
-            WriteChangestoTemp(2, 40, shopItemBytes);
+            ShopItemFile.Shops[SelectedShop].Items[SelectedItem].ItemId.ItemCategory = (ushort)ItemCategoryComboBox.SelectedIndex;
+
+            DebugLog($"ItemCategoryComboBox Category{ShopItemFile.Shops[SelectedShop].Items[SelectedItem].ItemId.ItemCategory}");
 
             PopulateItemIdComboBox();
         }
         private void ItemIDComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (windowShowFirstTime)
-            {
+            if (SelectedItem == -1 || ItemIDComboBox.SelectedIndex == -1)
                 return;
-            }
 
-            //Console.WriteLine("ItemIDComboBox_SelectionChanged");
-            short itemID = (short)((ItemCategoryComboBox.SelectedIndex * 0x1000) + ItemIDComboBox.SelectedIndex);
-            byte[] shopItemBytes = BitConverter.GetBytes(itemID);
-            WriteChangestoTemp(2, 40, shopItemBytes);
+            DebugLog("ItemIDComboBox_SelectionChanged");
+
+            ShopItemFile.Shops[SelectedShop].Items[SelectedItem].ItemId.ItemCategory = (ushort)ItemCategoryComboBox.SelectedIndex;
+            ShopItemFile.Shops[SelectedShop].Items[SelectedItem].ItemId.ItemIndex = (ushort)ItemIDComboBox.SelectedIndex;
+
+            DebugLog($"ItemIDCombobox Category {ItemCategoryComboBox.SelectedIndex}");
+            DebugLog($"ItemIDCombobox Index {ItemIDComboBox.SelectedIndex}");
+
             PopulateShopItemComboBox();
         }
 
         private void GameVersionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (windowShowFirstTime) //prevent function from running at launch
-            {
-                return;
-            }
-            //Console.WriteLine("GameVersionComboBox_SelectionChanged");
+            return;
+
+            if (ItemCategoryComboBox.SelectedIndex == -1) return;
+
+            DebugLog("GameVersionComboBox_SelectionChanged");
 
             string gameVersion;
             int gameVersionIndex = GameVersionComboBox.SelectedIndex;
@@ -461,397 +368,237 @@ namespace Shop_Editor
 
         private void StartMonthBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (windowShowFirstTime)
-            {
+            if (SelectedItem == -1)
                 return;
-            }
 
-            //Console.WriteLine("StartMonthBox_SelectionChanged");
-            var monthIndex = StartMonthBox.SelectedIndex;
-            //Console.WriteLine($"month {monthIndex}");
-            int[] dayArray = GetDayArray();
+            DebugLog("StartMonthBox_SelectionChanged");
 
-            if (StartDayTextBox.Text == "")
-            {
-                StartDayTextBox.Text = "1";
-            }
-
-            if (monthIndex == -1) monthIndex = 0;
-
-            if (dayArray[monthIndex] < Convert.ToInt32(StartDayTextBox.Text))
-            {
-                StartDayTextBox.Text = Convert.ToString(dayArray[monthIndex]);
-            }
-
-            byte[] startMonthByte = { (byte)(StartMonthBox.SelectedIndex + 1) };
-            WriteChangestoTemp(5, 40, startMonthByte);
+            ShopItemFile.Shops[SelectedShop].Items[SelectedItem].AvailabilityStartMonth = (byte)(StartMonthBox.SelectedIndex + 1);
         }
         private void EndMonthBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (windowShowFirstTime)
-            {
+            if (SelectedItem == -1)
                 return;
-            }
 
-            //Console.WriteLine("EndMonthBox_SelectionChanged");
-            var combo = (ComboBox)sender;
-            var monthIndex = combo.SelectedIndex;
-            int[] dayArray = GetDayArray();
-            if (EndDayTextBox.Text == "")
-            {
-                EndDayTextBox.Text = "1";
-            }
-            if (dayArray[monthIndex] < Convert.ToInt32(EndDayTextBox.Text))
-            {
-                EndDayTextBox.Text = Convert.ToString(dayArray[monthIndex]);
-            }
+            DebugLog("EndMonthBox_SelectionChanged");
 
-            byte[] endMonthByte = { (byte)(EndMonthBox.SelectedIndex + 1) };
-            WriteChangestoTemp(7, 40, endMonthByte);
+            ShopItemFile.Shops[SelectedShop].Items[SelectedItem].AvailabilityEndMonth = (byte)(EndMonthBox.SelectedIndex + 1);
         }
         private void StartDayTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (windowShowFirstTime)
-            {
+            if (SelectedItem == -1)
                 return;
+
+            DebugLog("StartDayTextBox_TextChanged");
+
+            try
+            {
+                ShopItemFile.Shops[SelectedShop].Items[SelectedItem].AvailabilityStartDay = Convert.ToByte(StartDayTextBox.Text);
             }
-
-            string startDay = StartDayTextBox.Text;
-
-            if (startDay == "") return;
-
-            byte[] startDayByte = { Convert.ToByte(startDay) };
-            WriteChangestoTemp(6, 40, startDayByte);
+            catch
+            {
+                DebugLog("Invalid number");
+            }
         }
 
         private void EndDayTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (windowShowFirstTime)
-            {
+            if (SelectedItem == -1)
                 return;
+
+            DebugLog("EndDayTextBox_TextChanged");
+
+            try
+            {
+                ShopItemFile.Shops[SelectedShop].Items[SelectedItem].AvailabilityEndDay = Convert.ToByte(EndDayTextBox.Text);
             }
-
-            string endDay = EndDayTextBox.Text;
-
-            if (endDay == "") return;
-
-            byte[] endDayByte = { Convert.ToByte(endDay) };
-            WriteChangestoTemp(8, 40, endDayByte);
+            catch
+            {
+                DebugLog("Invalid number");
+            }
         }
 
         private void QuantityTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (windowShowFirstTime)
-            {
+            if (SelectedItem == -1)
                 return;
-            }
 
-            string quantity = QuantityTextBox.Text;
-            if (quantity == "") return;
-            byte[] quantityByte = { Convert.ToByte(quantity) };
-            WriteChangestoTemp(10, 40, quantityByte);
+            DebugLog("QuantityTextBox_TextChanged");
+
+            try
+            {
+                ShopItemFile.Shops[SelectedShop].Items[SelectedItem].Quantity = Convert.ToByte(QuantityTextBox.Text);
+                ShopItemFile.Shops[SelectedShop].Items[SelectedItem].Quantity2 = Convert.ToByte(QuantityTextBox.Text);
+                ShopItemFile.Shops[SelectedShop].Items[SelectedItem].Quantity3 = Convert.ToByte(QuantityTextBox.Text);
+            }
+            catch
+            {
+                DebugLog("Invalid number");
+            }
         }
 
         private void PricePercentageTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (windowShowFirstTime)
-            {
+            if (SelectedItem == -1)
                 return;
-            }
 
-            string percentage = PricePercentageTextBox.Text;
-            if (percentage == "") return;
-            byte[] percentageInt = BitConverter.GetBytes(Convert.ToInt32(percentage));
-            WriteChangestoTemp(32, 40, percentageInt);
+            DebugLog("PricePercentageTextBox_TextChanged");
+
+            try
+            {
+                ShopItemFile.Shops[SelectedShop].Items[SelectedItem].PercentageOfPrice = Convert.ToInt32(PricePercentageTextBox.Text);
+            }
+            catch
+            {
+                DebugLog("Invalid number");
+            }
         }
 
         private void AmountPerUnitTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (windowShowFirstTime)
-            {
+            if (SelectedItem == -1)
                 return;
-            }
 
-            string amountPerUnit = AmountPerUnitTextBox.Text;
-            if (amountPerUnit == "") return;
-            byte[] amountPerUnitByte = { Convert.ToByte(amountPerUnit) };
-            WriteChangestoTemp(4, 40, amountPerUnitByte);
+            DebugLog("AmountPerUnitTextBox_TextChanged");
+
+            try
+            {
+                ShopItemFile.Shops[SelectedShop].Items[SelectedItem].AmountPerUnit = Convert.ToByte(AmountPerUnitTextBox.Text);
+            }
+            catch
+            {
+                DebugLog("Invalid number");
+            }
         }
 
         private void RequiredBitflagTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (windowShowFirstTime)
-            {
+            if (SelectedItem == -1)
                 return;
-            }
 
-            string bitflag = RequiredBitflagTextBox.Text;
-            if (bitflag == "" || (bitflag.Contains('-') && bitflag != "-1")) return;
-            byte[] bitflagInt = BitConverter.GetBytes(Convert.ToInt32(bitflag));
-            WriteChangestoTemp(24, 40, bitflagInt);
+            DebugLog("RequiredBitflagTextBox_TextChanged");
+
+            try
+            {
+                ShopItemFile.Shops[SelectedShop].Items[SelectedItem].Bitflag.ConvertedBitflag = Convert.ToInt32(RequiredBitflagTextBox.Text);
+            }
+            catch
+            {
+                DebugLog("Invalid number");
+            }
         }
 
         private void ShopSelectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (windowShowFirstTime) //prevent function from running at launch
-            {
-                return;
-            }
+            SelectedShop = ShopSelectionComboBox.SelectedIndex;
 
-            //Console.WriteLine("ShopSelectionComboBox_SelectionChanged");
-            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
+            DebugLog("ShopSelectionComboBox_SelectionChanged");
 
-            string tempFile;
+            ClearAllFields();
+            PopulateShopItemComboBox();
 
-            if (gameVersionIndex == 0)
-            {
-                tempFile = tempShopR;
-            }
-            else
-            {
-                tempFile = tempShopV;
-            }
-
-            string shopItemftd = tempFile;
-
-            int shopIndex = ShopSelectionComboBox.SelectedIndex;
-
-            if (shopIndex == -1) return;
-
-            List<int> itemCount = FtdParse.FindShopOffsetsandCount(shopItemftd, "ItemCount");
-
-            NumOfItemsTextBox.Text = itemCount[shopIndex].ToString();
-            ShopNameTextBox.Text = NameParse.PrintShopName(shopIndex, GameVersionComboBox.SelectedIndex);
-            ShopIDTextBox.Text = ShopSelectionComboBox.SelectedIndex.ToString();
-
-            List<string> ShopItemList = ItemParse.MakeShopItemList(shopIndex, GameVersionComboBox.SelectedIndex);
-            ItemSelectionComboBox.ItemsSource = ShopItemList;
-            ItemSelectionComboBox.SelectedIndex = 0;
+            ShopNameTextBox.Text = ShopNameFile.ShopNames[SelectedShop].Name;
+            return;
         }
 
         private void ShopNameTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            //Console.WriteLine(sender);
-            if (windowShowFirstTime) //prevent function from running at launch
-            {
+            if (SelectedShop == -1)
                 return;
-            }
-            int structSize = 32;
 
-            if (GameVersionComboBox.SelectedIndex == 0)
-            {
-                structSize = 48;
-            }
+            DebugLog("ShopNameTextBox_TextChanged");
 
-            byte[] nameBytes = Encoding.GetEncoding(932).GetBytes(ShopNameTextBox.Text);
-            Array.Reverse(nameBytes);
-            WriteChangestoTemp(0, structSize, nameBytes);
-            PopulateShopNameComboBox();
+            ShopNameFile.ShopNames[SelectedShop].Name = ShopNameTextBox.Text;
         }
 
         private void UnlimitedQuantity_Checked(object sender, RoutedEventArgs e)
         {
-            if (windowShowFirstTime)
-            {
+            if (SelectedItem == -1)
                 return;
-            }
 
-            var check = (CheckBox)sender;
-            if (check.IsChecked == true)
-            {
-                QuantityTextBox.IsReadOnly = true;
-                QuantityTextBox.Background = new SolidColorBrush(Color.FromArgb(0xff, 0x20, 0x20, 0x20));
-                byte[] unlimitedItems = { 0xff };
-                WriteChangestoTemp(0, 40, unlimitedItems);
-            }
-            else
-            {
-                QuantityTextBox.IsReadOnly = false;
-                QuantityTextBox.Background = new SolidColorBrush(Color.FromArgb(0xff, 0x2a, 0x2a, 0x2a));
-                byte[] unlimitedItems = { 0x0 };
-                WriteChangestoTemp(0, 40, unlimitedItems);
-            }
+            DebugLog("UnlimitedQuantity_Checked");
+
+            ShopItemFile.Shops[SelectedShop].Items[SelectedItem].ShopEndIndicator = (byte)(UnlimitedQuantityCheckBox.IsChecked == true ? 0xFF : 0);
         }
 
         private void PopulateShopNameComboBox()
         {
-            //Console.WriteLine("PopulateShopNameComboBox");
-            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
+            DebugLog("PopulateShopNameComboBox");
 
-            List<string> ShopNameList = NameParse.MakeShopNameList(gameVersionIndex);
-
-            windowShowFirstTime = true;
-            var shopIndex = ShopSelectionComboBox.SelectedIndex;
-            ShopSelectionComboBox.ItemsSource = ShopNameList;
-
-            if (shopIndex == -1)
-            {
-                shopIndex = 0;
-            }
-
-            ShopSelectionComboBox.SelectedIndex = shopIndex;
-            ShopNameTextBox.Text = NameParse.PrintShopName(shopIndex, GameVersionComboBox.SelectedIndex);
-            windowShowFirstTime = false;
+            ShopSelectionComboBox.ItemsSource = new ShopComboBox(ShopNameFile).NameIndex;
         }
 
         private void PopulateShopInformation()
         {
-            //Console.WriteLine("PopulateShopInformation");
-            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
-
-            string tempFile;
-
-            if (gameVersionIndex == 0)
-            {
-                tempFile = tempShopR;
-            }
-            else
-            {
-                tempFile = tempShopV;
-            }
-
-            string shopItemftd = tempFile;
-
-            var shopIndex = ShopSelectionComboBox.SelectedIndex;
-
-            List<int> itemCount = FtdParse.FindShopOffsetsandCount(shopItemftd, "ItemCount");
-
-
-            NumOfItemsTextBox.Text = itemCount[shopIndex].ToString();
+            DebugLog("PopulateShopInformation");
+            
+            NumOfItemsTextBox.Text = ShopItemFile.Shops[ShopSelectionComboBox.SelectedIndex].Items.Count.ToString();
             ShopIDTextBox.Text = ShopSelectionComboBox.SelectedIndex.ToString();
         }
         private void PopulateShopItemComboBox()
         {
-            //Console.WriteLine("PopulateShopItemComboBox");
-            int shopID = ShopSelectionComboBox.SelectedIndex;
-            
-            if (shopID == -1) shopID = 0;
+            DebugLog("PopulateShopItemComboBox");
 
-            List<string> ShopItemList = ItemParse.MakeShopItemList(shopID, GameVersionComboBox.SelectedIndex);
+            var storeItemSelection = ItemSelectionComboBox.SelectedIndex;
 
-            int prevIndex = ItemSelectionComboBox.SelectedIndex;
-            if (prevIndex == -1) prevIndex = 0;
+            DebugLog($"PopulateShopItemComboBox Category {ItemCategoryComboBox.SelectedIndex}");
+            DebugLog($"PopulateShopItemComboBox Index {ItemIDComboBox.SelectedIndex}");
 
-            windowShowFirstTime = true;
-            ItemSelectionComboBox.ItemsSource = ShopItemList;
-            ItemSelectionComboBox.SelectedIndex = prevIndex;
-            windowShowFirstTime = false;
+            ShopItemBoxList = new ShopItemListBox(ShopItemFile.Shops[SelectedShop], FullItemList).ItemEntries;
+            ItemSelectionComboBox.ItemsSource = ShopItemBoxList;
+
+            ItemSelectionComboBox.SelectedIndex = storeItemSelection;
         }
 
         private void PopulateItemValues()
         {
-            //Console.WriteLine("PopulateItemValues");
-            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
+            if (SelectedItem == -1) return;
 
-            string tempFile;
-
-            if (gameVersionIndex == 0)
-            {
-                tempFile = tempShopR;
-            }
-            else
-            {
-                tempFile = tempShopV;
-            }
-
-            string shopItemftd = tempFile;
+            DebugLog("PopulateItemValues");
 
             int shopInput = ShopSelectionComboBox.SelectedIndex;
 
-            List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(shopItemftd, "ShopOffsets");
-
             int shopItemIndex = ItemSelectionComboBox.SelectedIndex;
-            if (shopItemIndex <= -1 || shopInput <= -1)
-            {
-                return;
-            }
 
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            using (BinaryObjectReader P5FTDFile = new(shopItemftd, Endianness.Big, Encoding.GetEncoding(932)))
-            {
-                int shopItemIndexOffset = shopItemIndex * 40;
-                long startOffset = shopItemIndexOffset + shopOffsets[shopInput];
-                P5FTDFile.AtOffset(startOffset);
+            var selectedShopItem = ShopItemFile.Shops[shopInput].Items[shopItemIndex];
 
-                byte field0 = P5FTDFile.ReadByte();
-                if (field0 == 0xFF) UnlimitedQuantityCheckBox.IsChecked = true;
-                else UnlimitedQuantityCheckBox.IsChecked = false;
+            var ItemId = selectedShopItem.ItemId.ItemIndex;
 
-                P5FTDFile.ReadByte();
-                ushort itemIndex = P5FTDFile.ReadUInt16();
-                AmountPerUnitTextBox.Text = P5FTDFile.ReadByte().ToString();
-                StartMonthBox.SelectedIndex = P5FTDFile.ReadByte() - 1;
-                StartDayTextBox.Text = P5FTDFile.ReadByte().ToString();
-                EndMonthBox.SelectedIndex = P5FTDFile.ReadByte() - 1;
-                EndDayTextBox.Text = P5FTDFile.ReadByte().ToString();
-                P5FTDFile.ReadByte();
-                QuantityTextBox.Text = P5FTDFile.ReadByte().ToString();
-                P5FTDFile.ReadByte();
-                P5FTDFile.ReadByte();
-                P5FTDFile.ReadByte();
-                P5FTDFile.ReadInt16();
-                P5FTDFile.ReadInt32();
-                P5FTDFile.ReadInt32();
-                short bitflagSection = P5FTDFile.ReadInt16();
-                short bitflagRequirement = P5FTDFile.ReadInt16();
-                P5FTDFile.ReadInt32();
-                PricePercentageTextBox.Text = P5FTDFile.ReadInt32().ToString();
-                P5FTDFile.ReadInt32();
+            UnlimitedQuantityCheckBox.IsChecked = selectedShopItem.ShopEndIndicator == 0xFF ? true : false;
+            ItemCategoryComboBox.SelectedIndex  = selectedShopItem.ItemId.ItemCategory;
+            ItemIDComboBox.SelectedIndex        = ItemId;
+            AmountPerUnitTextBox.Text           = selectedShopItem.AmountPerUnit.ToString();
+            StartMonthBox.SelectedIndex         = selectedShopItem.AvailabilityStartMonth - 1;
+            StartDayTextBox.Text                = selectedShopItem.AvailabilityStartDay.ToString();
+            EndMonthBox.SelectedIndex           = selectedShopItem.AvailabilityEndMonth - 1;
+            EndDayTextBox.Text                  = selectedShopItem.AvailabilityEndDay.ToString();
+            QuantityTextBox.Text                = selectedShopItem.Quantity.ToString();
+            RequiredBitflagTextBox.Text         = selectedShopItem.Bitflag.ConvertedBitflag.ToString();
+            PricePercentageTextBox.Text         = selectedShopItem.PercentageOfPrice.ToString();
 
-                int Bitflag;
-                if (gameVersionIndex == 0)
-                {
-                    Bitflag = FtdParse.SumRoyalFlag(bitflagSection, bitflagRequirement);
-                }
-                else
-                {
-                    Bitflag = bitflagRequirement;
-                }
-
-                int itemCategory = itemIndex / 0x1000;
-                int itemID = itemIndex - (itemCategory * 0x1000);
-                ItemCategoryComboBox.SelectedIndex = itemCategory;
-                ItemIDComboBox.SelectedIndex = itemID;
-
-                RequiredBitflagTextBox.Text = Bitflag.ToString();
-
-                if (Bitflag == 65536) RequiredBitflagTextBox.Text = "-1";
-            }
+            DebugLog($"item {ItemIDComboBox.SelectedIndex}");
         }
         private void PopulateItemIdComboBox()
         {
-            //Console.WriteLine("PopulateItemIdComboBox");
-            string[] itemList;
-            List<string> numberedItemList = new();
+            DebugLog("PopulateItemIdComboBox");
 
-            if (GameVersionComboBox.SelectedIndex == 0)
+            if (ItemCategoryComboBox.SelectedIndex == -1) return;
+
+            var prevItemSelection = ItemIDComboBox.SelectedIndex;
+
+            if (prevItemSelection > FullItemList[ItemCategoryComboBox.SelectedIndex].Length)
             {
-                itemList = P5RItems.ItemLists((ushort)(ItemCategoryComboBox.SelectedIndex * 0x1000));
-            }
-            else
-            {
-                itemList = P5Items.ItemLists((ushort)(ItemCategoryComboBox.SelectedIndex * 0x1000));
+                prevItemSelection = FullItemList[ItemCategoryComboBox.SelectedIndex].Length - 1;
             }
 
-            for (int i = 0; i < itemList.Length; i++)
-            {
-                numberedItemList.Add(itemList[i] + " (" + i + ")");
-            }
+            DebugLog($"PopulateItemIdComboBox ItemIdIndex {prevItemSelection}");
+            DebugLog($"PopulateItemIdComboBox ItemCategory {ItemCategoryComboBox.SelectedIndex}");
 
-            int prevItem = ItemIDComboBox.SelectedIndex;
+            var ItemIdList = new ItemIdComboBox(ItemCategoryComboBox.SelectedIndex, FullItemList).ItemsIndexes;
+            ItemIDComboBox.ItemsSource = ItemIdList;
+            ItemIDComboBox.SelectedIndex = prevItemSelection;
 
-            if (prevItem == -1) prevItem = 0;
-
-            windowShowFirstTime = true;
-            ItemIDComboBox.ItemsSource = numberedItemList;
-            windowShowFirstTime = false;
-            ItemIDComboBox.SelectedIndex = prevItem;
-        }
-
-        public static int[] GetDayArray()
-        {
-            int[] dayArray = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-            return dayArray;
+            DebugLog("Return PopulateItemIdComboBox");
         }
         private void ResetAllFields()
         {
@@ -862,6 +609,7 @@ namespace Shop_Editor
         }
         private void CheckForFtdsOnStartup()
         {
+            GameVersionComboBox.SelectedIndex = 0;
             if (!File.Exists(Directory.GetCurrentDirectory() + "\\Original\\Royal\\fclPublicShopItemTable.ftd") || !File.Exists(Directory.GetCurrentDirectory() + "\\Original\\Royal\\fclPublicShopName.ftd"))
             {
                 if (!File.Exists(Directory.GetCurrentDirectory() + "\\Original\\Vanilla\\fclPublicShopItemTable.ftd") || !File.Exists(Directory.GetCurrentDirectory() + "\\Original\\Vanilla\\fclPublicShopName.ftd"))
@@ -954,138 +702,12 @@ namespace Shop_Editor
 
         private void AddItemSlot()
         {
-            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
-            string tempFile;
-
-            if (gameVersionIndex == 0)
-            {
-                tempFile = tempShopR;
-            }
-            else
-            {
-                tempFile = tempShopV;
-            }
-
-            List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(tempFile, "ShopOffsets");
-
-            int shopID = Convert.ToInt32(ShopIDTextBox.Text);
-            int shopItemIndex = ItemSelectionComboBox.SelectedIndex;
-
-            int itemOffset = shopOffsets[shopID] + (shopItemIndex * 40);
-
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            using (BinaryObjectReader P5FTDFile = new(tempFile, Endianness.Big, Encoding.GetEncoding(932)))
-            {
-                using (BinaryObjectWriter P5NewFTDFile = new(tempFile, Endianness.Big, Encoding.GetEncoding(932)))
-                {
-                    for (int i = 0; i < itemOffset; i++)
-                    {
-                        P5NewFTDFile.Write(P5FTDFile.ReadByte());
-                    }
-                    long currentPosition = P5FTDFile.Position;
-                    int numOfItems = Convert.ToInt32(NumOfItemsTextBox.Text);
-                    if (numOfItems < 1)
-                    {
-                        for (int i = 0; i < 40; i++) //add in end of last shop
-                        {
-                            P5NewFTDFile.Write(P5FTDFile.ReadByte());
-                        }
-
-                        P5FTDFile.AtOffset(48);
-
-                        for (int i = 0; i < 40; i++)
-                        {
-                            P5NewFTDFile.Write(P5FTDFile.ReadByte());
-                        }
-                        currentPosition += 40;
-                    }
-                    else
-                    {
-                        for (int i = 0; i < 40; i++)
-                        {
-                            P5NewFTDFile.Write(P5FTDFile.ReadByte());
-                        }
-                    }
-
-                    P5NewFTDFile.At(8, SeekOrigin.Begin);
-                    P5FTDFile.AtOffset(8); //Filesize
-                    P5NewFTDFile.Write(P5FTDFile.ReadUInt32() + 40); //Subtract Filesize field by 40
-
-                    P5NewFTDFile.At(36, SeekOrigin.Begin);
-                    P5FTDFile.AtOffset(36); //Datasize
-                    P5NewFTDFile.Write(P5FTDFile.ReadUInt32() + 40); //Subtract Datasize field by 40
-                    P5NewFTDFile.Write(P5FTDFile.ReadUInt32() + 1); //Subtract Entry Count field by 1
-
-                    P5NewFTDFile.At(0, SeekOrigin.End);
-                    P5FTDFile.AtOffset(currentPosition);
-
-                    long remainingSpace = P5FTDFile.Length - P5FTDFile.Position;
-
-                    for (int i = 0; i < (int)remainingSpace; i++) //write to end of file
-                    {
-                        P5NewFTDFile.Write(P5FTDFile.ReadByte());
-                    }
-                }
-            }
+            return;
         }
 
         private void RemoveItemSlot()
         {
-            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
-            string tempFile;
-
-            if (gameVersionIndex == 0)
-            {
-                tempFile = tempShopR;
-            }
-            else
-            {
-                tempFile = tempShopV;
-            }
-
-            List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(tempFile, "ShopOffsets");
-
-            int shopID = Convert.ToInt32(ShopIDTextBox.Text);
-            int shopItemIndex = ItemSelectionComboBox.SelectedIndex;
-
-            int itemOffset = shopOffsets[shopID] + (shopItemIndex * 40);
-
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            using (BinaryObjectReader P5FTDFile = new(tempFile, Endianness.Big, Encoding.GetEncoding(932)))
-            {
-                using (BinaryObjectWriter P5NewFTDFile = new(tempFile, Endianness.Big, Encoding.GetEncoding(932)))
-                {
-                    for (int i = 0; i < itemOffset; i++)
-                    {
-                        P5NewFTDFile.Write(P5FTDFile.ReadByte());
-                    }
-                    for (int i = 0; i < 40; i++)
-                    {
-                        P5FTDFile.ReadByte();
-                    }
-
-                    long currentPosition = P5FTDFile.Position;
-
-                    P5NewFTDFile.At(8, SeekOrigin.Begin);
-                    P5FTDFile.AtOffset(8); //Filesize
-                    P5NewFTDFile.Write(P5FTDFile.ReadUInt32() - 40); //Subtract Filesize field by 40
-
-                    P5NewFTDFile.At(36, SeekOrigin.Begin);
-                    P5FTDFile.AtOffset(36); //Datasize
-                    P5NewFTDFile.Write(P5FTDFile.ReadUInt32() - 40); //Subtract Datasize field by 40
-                    P5NewFTDFile.Write(P5FTDFile.ReadUInt32() - 1); //Subtract Entry Count field by 1
-
-                    P5FTDFile.AtOffset(currentPosition);
-                    P5NewFTDFile.At(0, SeekOrigin.End);
-
-                    long remainingSpace = P5FTDFile.Length - P5FTDFile.Position;
-
-                    for (int i = 0; i < (int)remainingSpace; i++) //write to end of file
-                    {
-                        P5NewFTDFile.Write(P5FTDFile.ReadByte());
-                    }
-                }
-            }
+            return;
         }
 
         private bool AreFilesTheSame(int structSize, int mode) //0 for original, 1 for output
@@ -1333,80 +955,17 @@ namespace Shop_Editor
             List<int> outputOffsets = FtdParse.FindShopOffsetsandCount(tempFile, "ShopOffsets");
             List<int> originalOffsets = FtdParse.FindShopOffsetsandCount(shopItemftd, "ShopOffsets");
 
-            return (new FileInfo(tempFile).Length == new FileInfo(shopItemftd).Length) && Enumerable.SequenceEqual(outputOffsets, originalOffsets);
+            return false;
         }
 
         private void WriteChangestoTemp(int offset, int structSize, byte[] newBytes)
         {
-            int shopID = ShopSelectionComboBox.SelectedIndex;
-            int shopItemIndex = ItemSelectionComboBox.SelectedIndex;
-            int itemOffset;
-
-            if (windowShowFirstTime || shopID == -1)
-            {
-                return;
-            }
-            Array.Reverse(newBytes);
-            string tempFile = tempShopV;
-            int gameVersionIndex = GameVersionComboBox.SelectedIndex;
-            int byteArrayLength = newBytes.Length;
-
-            if (structSize != 40)
-            {
-                tempFile = tempNameV;
-                byteArrayLength = 32;
-            }
-
-            if (gameVersionIndex == 0)
-            {
-                tempFile = tempShopR;
-                if (structSize != 40)
-                {
-                    tempFile = tempNameR;
-                    byteArrayLength = 48;
-                }
-            }
-
-
-            if (structSize != 40)
-            {
-                itemOffset = 48 + (shopID * structSize);
-            }
-            else
-            {
-                List<int> shopOffsets = FtdParse.FindShopOffsetsandCount(tempFile, "ShopOffsets");
-                itemOffset = shopOffsets[shopID] + (shopItemIndex * 40);
-            }
-
-
-            itemOffset += offset;
-
-            ReplaceBytes(tempFile, itemOffset, newBytes, byteArrayLength);
-
-            string newName = System.Text.Encoding.GetEncoding(932).GetString(newBytes, 0, newBytes.Length);
-
-            if (structSize != 40)
-            {
-                ShopNameTextBox.Text = newName;
-            }
+            return;
         }
 
         public static void ReplaceBytes(string filename, int position, byte[] data, int byteArrayLength)
         {
-            using (Stream stream = File.Open(filename, FileMode.Open))
-            {
-                stream.Position = position;
-                stream.Write(data, 0, data.Length);
-
-                if (data.Length != byteArrayLength)
-                {
-                    int extraByteCount = byteArrayLength - data.Length;
-                    for (int i = 0; i < extraByteCount; i++)
-                    {
-                        stream.WriteByte(0);
-                    }
-                }
-            }
+            return;
         }
 
         private static void CreateTempFiles()
@@ -1442,6 +1001,13 @@ namespace Shop_Editor
         private void ShowMessage(string message)
         {
             MessageTextBox.Text = message;
+        }
+
+        internal static void DebugLog(object message)
+        {
+#if DEBUG
+            Console.WriteLine(message);
+#endif
         }
     }  
 }
