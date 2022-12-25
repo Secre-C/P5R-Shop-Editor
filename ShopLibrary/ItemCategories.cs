@@ -22,7 +22,7 @@ namespace ShopLibrary
         public static List<string[]> GetItemList(string gameVer)
         {
             List<string[]> ItemList = new List<string[]>();
-            ItemCategories itemCategories = JsonSerializer.Deserialize<ItemCategories>(File.ReadAllText($"C:\\Users\\Gabriel Premore\\source\\repos\\Shop Editor\\ShopLibrary\\P5R Items\\{gameVer}Items.Json"));
+            ItemCategories itemCategories = JsonSerializer.Deserialize<ItemCategories>(File.ReadAllText($"Item Enums\\{gameVer}Items.Json"));
 
             ItemList.Add( itemCategories.MeleeWeapons);
             ItemList.Add( itemCategories.Armors);

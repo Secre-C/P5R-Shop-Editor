@@ -11,13 +11,13 @@ namespace ShopLibrary
     public class ShopData
     {
         public short BannerId { get; set; }
-        public bool HideBanner { get; set; }
+        public bool HideNametag { get; set; }
         public byte ShopMode { get; set; }
 
         public ShopData Read(BinaryObjectReader reader)
         {
             BannerId = reader.ReadInt16();
-            HideBanner = reader.ReadByte() == 1 ? true : false;
+            HideNametag = reader.ReadByte() == 1 ? true : false;
             ShopMode = reader.ReadByte();
 
             return this;
@@ -26,7 +26,7 @@ namespace ShopLibrary
         public void Write(BinaryObjectWriter writer, ShopData shopData)
         {
             writer.Write(BannerId);
-            writer.Write((byte)(HideBanner == true ? 1 : 0));
+            writer.Write((byte)(HideNametag == true ? 1 : 0));
             writer.Write(ShopMode);
         }
     }

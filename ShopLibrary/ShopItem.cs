@@ -20,10 +20,10 @@ namespace ShopLibrary
         public byte AvailabilityStartDay { get; set; }
         public byte AvailabilityEndMonth { get; set; }
         public byte AvailabilityEndDay { get; set; }
-        public byte unk1 { get; private set; }
         public byte Quantity { get; set; }
         public byte Quantity2 { get; set; } //often matches quantity, not sure how it works
         public byte Quantity3 { get; set; } //often matches quantity, not sure how it works
+        public byte unk1 { get; private set; }
         public byte unk2 { get; private set; }
         public short unk3 { get; private set; }
         public int unk4 { get; private set; }
@@ -44,10 +44,10 @@ namespace ShopLibrary
             AvailabilityStartDay = reader.ReadByte();
             AvailabilityEndMonth = reader.ReadByte();
             AvailabilityEndDay = reader.ReadByte();
-            unk1 = reader.ReadByte();
             Quantity = reader.ReadByte();
             Quantity2 = reader.ReadByte();
             Quantity3 = reader.ReadByte();
+            unk1 = reader.ReadByte();
             unk2 = reader.ReadByte();
             unk3 = reader.ReadInt16();
             unk4 = reader.ReadInt32();
@@ -70,10 +70,10 @@ namespace ShopLibrary
             writer.Write(shopItem.AvailabilityStartDay); 
             writer.Write(shopItem.AvailabilityEndMonth); 
             writer.Write(shopItem.AvailabilityEndDay); 
-            writer.Write(shopItem.unk1); 
             writer.Write(shopItem.Quantity); 
             writer.Write(shopItem.Quantity2); 
-            writer.Write(shopItem.Quantity3); 
+            writer.Write(shopItem.Quantity3);
+            writer.Write(shopItem.unk1);
             writer.Write(shopItem.unk2); 
             writer.Write(shopItem.unk3); 
             writer.Write(shopItem.unk4); 
@@ -84,8 +84,10 @@ namespace ShopLibrary
             writer.Write(shopItem.unk7); 
         }
 
-        public void GenerateEndEntry(ref ShopItem endShopEntry)
+        internal static ShopItem CreateEndEntry()
         {
+            ShopItem endShopEntry = new();
+
             endShopEntry.ShopEndIndicator = 0x9D;
             endShopEntry.unk0 = 0;
             endShopEntry.ItemId = new Item();
@@ -109,35 +111,36 @@ namespace ShopLibrary
             endShopEntry.PercentageOfPrice = 0;
             endShopEntry.unk7 = 0;
 
-            endShopEntry = this;
+            return endShopEntry;
         }
 
-        public void GenerateDummyEntry(ref ShopItem endShopEntry)
+        public static ShopItem CreateDummyEntry()
         {
-            endShopEntry.ShopEndIndicator = 0x00;
-            endShopEntry.unk0 = 0;
-            endShopEntry.ItemId = new Item();
-            endShopEntry.ItemId.data = 0;
-            endShopEntry.AmountPerUnit = 0;
-            endShopEntry.AvailabilityStartMonth = 0;
-            endShopEntry.AvailabilityStartDay = 0;
-            endShopEntry.AvailabilityEndMonth = 0;
-            endShopEntry.AvailabilityEndDay = 0;
-            endShopEntry.unk1 = 0;
-            endShopEntry.Quantity = 0;
-            endShopEntry.Quantity2 = 0;
-            endShopEntry.Quantity3 = 0;
-            endShopEntry.unk2 = 0;
-            endShopEntry.unk3 = 0;
-            endShopEntry.unk4 = 0;
-            endShopEntry.unk5 = 0;
-            endShopEntry.Bitflag = new Bitflag();
-            endShopEntry.Bitflag.data = 0;
-            endShopEntry.unk6 = 0;
-            endShopEntry.PercentageOfPrice = 0;
-            endShopEntry.unk7 = 0;
+            var dummyShopEntry = new ShopItem();
+            dummyShopEntry.ShopEndIndicator = 0xFF;
+            dummyShopEntry.unk0 = 0;
+            dummyShopEntry.ItemId = new Item();
+            dummyShopEntry.ItemId.data = 0x3001;
+            dummyShopEntry.AmountPerUnit = 1;
+            dummyShopEntry.AvailabilityStartMonth = 4;
+            dummyShopEntry.AvailabilityStartDay = 1;
+            dummyShopEntry.AvailabilityEndMonth = 3;
+            dummyShopEntry.AvailabilityEndDay = 31;
+            dummyShopEntry.Quantity = 99;
+            dummyShopEntry.Quantity2 = 99;
+            dummyShopEntry.Quantity3 = 99;
+            dummyShopEntry.unk1 = 0xFF;
+            dummyShopEntry.unk2 = 0xFF;
+            dummyShopEntry.unk3 = 0;
+            dummyShopEntry.unk4 = 0;
+            dummyShopEntry.unk5 = 0;
+            dummyShopEntry.Bitflag = new Bitflag();
+            dummyShopEntry.Bitflag.data = -1;
+            dummyShopEntry.unk6 = 0;
+            dummyShopEntry.PercentageOfPrice = 100;
+            dummyShopEntry.unk7 = 0;
 
-            endShopEntry = this;
+            return dummyShopEntry;
         }
     }
     public class Item

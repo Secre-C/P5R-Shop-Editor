@@ -15,8 +15,10 @@ namespace ShopLibrary
         public List<Shop> Shops { get; set; }
         public byte[] EndOfFile { get; set; }
 
-        public void Read(string shopItemFilePath, out ShopItemFile shopItemFileModel)
+        public ShopItemFile Read(string shopItemFilePath)
         {
+            ShopItemFile shopItemFileModel = new();
+
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             var reader = new BinaryObjectReader(shopItemFilePath, Endianness.Big, Encoding.GetEncoding(932));
 
@@ -31,7 +33,7 @@ namespace ShopLibrary
 
             EndOfFile = reader.ReadArray<byte>((int)(FtdHeader.FileSize - reader.Position));
 
-            shopItemFileModel = this;
+            return this;
         }
 
         public void Write(string newShopItemFile, ShopItemFile shopItemFileModel)
@@ -63,6 +65,15 @@ namespace ShopLibrary
 
             shopItemFileModel = this;
         }
+        public void AddItem(ref ShopItemFile shopItemFileModel, int shopId, int itemInsertIndex)
+        {
+            shopItemFileModel.Shops[shopId].Items.Insert(itemInsertIndex, ShopItem.CreateDummyEntry());
+            FtdList.EntryCount += 1;
+            FtdList.DataSize += (uint)FtdList.EntrySize;
+            FtdHeader.FileSize += (uint)FtdList.EntrySize;
+
+            shopItemFileModel = this;
+        }
 
         public void RemoveItem(ref ShopItemFile shopItemFileModel, int shopId, int itemRemoveIndex)
         {
@@ -78,21 +89,22 @@ namespace ShopLibrary
         {
             var blankShop = new Shop();
             blankShop.Items = new();
-            blankShop.CreateDummyEntry(out var blankEntry);
-            blankShop.Items.Add(blankEntry);
+
+            var blankItem = ShopItem.CreateDummyEntry();
+            blankShop.Items.Add(blankItem);
             shopItemFileModel.Shops.Insert(shopInsertIndex, blankShop);
 
-            FtdList.EntryCount += 1;
-            FtdList.DataSize += (uint)FtdList.EntrySize;
-            FtdHeader.FileSize += (uint)FtdList.EntrySize;
+            FtdList.EntryCount += 2;
+            FtdList.DataSize += (uint)FtdList.EntrySize * 2;
+            FtdHeader.FileSize += (uint)FtdList.EntrySize * 2;
 
             shopItemFileModel = this;
         }
 
         public void CopyShop(ref ShopItemFile shopItemFileModel, int itemInsertIndex, int itemCopyIndex)
         {
-            var fileSizeDiff = (uint)(FtdList.EntrySize * shopItemFileModel.Shops[itemCopyIndex].Items.Count);
-            FtdList.EntryCount += (uint)shopItemFileModel.Shops[itemCopyIndex].Items.Count;
+            var fileSizeDiff = (uint)(FtdList.EntrySize * shopItemFileModel.Shops[itemCopyIndex].Items.Count + FtdList.EntrySize);
+            FtdList.EntryCount += (uint)(shopItemFileModel.Shops[itemCopyIndex].Items.Count + 1);
             FtdList.DataSize += fileSizeDiff;
             FtdHeader.FileSize += fileSizeDiff;
 
@@ -103,8 +115,8 @@ namespace ShopLibrary
 
         public void RemoveShop(ref ShopItemFile shopItemFileModel, int shopRemoveIndex)
         {
-            var fileSizeDiff = (uint)(FtdList.EntrySize * shopItemFileModel.Shops[shopRemoveIndex].Items.Count);
-            FtdList.EntryCount -= (uint)shopItemFileModel.Shops[shopRemoveIndex].Items.Count;
+            var fileSizeDiff = (uint)(FtdList.EntrySize * shopItemFileModel.Shops[shopRemoveIndex].Items.Count + FtdList.EntrySize);
+            FtdList.EntryCount -= (uint)(shopItemFileModel.Shops[shopRemoveIndex].Items.Count + 1);
             FtdList.DataSize -= fileSizeDiff;
             FtdHeader.FileSize -= fileSizeDiff;
 

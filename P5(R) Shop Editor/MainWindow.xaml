@@ -12,7 +12,7 @@
         FontWeight="Bold"
     xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2">
     <Window.Resources>
-        
+
         <SolidColorBrush x:Key="ComboBox.Static.Border" Color="#FFACACAC"/>
         <SolidColorBrush x:Key="ComboBox.Static.Glyph" Color="#FF606060"/>
         <SolidColorBrush x:Key="ComboBox.MouseOver.Border" Color="#FF7EB4EA"/>
@@ -69,35 +69,28 @@
             <Setter Property="Template" Value="{StaticResource ComboBoxTemplate}"/>
         </Style>
     </Window.Resources>
-    
-    <Border Padding="20" >
-        <StackPanel>
+
+    <Border>
+        <StackPanel Margin="0, 0">
+            <Grid Margin="0, 0, 0, 20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="20*"/>
+                </Grid.RowDefinitions>
+                <Menu Background="#2a2a2a">
+                    <MenuItem Header="File" Foreground="#e6e6e6">
+                        <MenuItem Click="MenuItem_Open_Click" Header="Open" Background="#2a2a2a"/>
+                        <MenuItem Click="SaveButton_Click" Header="Save" Background="#2a2a2a"/>
+                    </MenuItem>
+                </Menu>
+            </Grid>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <!--Game Version-->
-                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                    <TextBlock Text="Game Version" HorizontalAlignment="Center"/>
-                    <ListBox x:Name="GameVersionComboBox" SelectionChanged="GameVersionComboBox_SelectionChanged" SelectedIndex="0" Background="#202020" Foreground="#e6e6e6" Margin="0 0 20 0" Grid.Column="0" >
-                        <ListBox.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" />
-                            </ItemsPanelTemplate>
-                        </ListBox.ItemsPanel>
-                        <ListBox.ItemContainerStyle>
-                            <Style TargetType="ListBoxItem">
-                                <Setter Property="Padding" Value="30 0 30 0" />
-                            </Style>
-                        </ListBox.ItemContainerStyle>
-                        <ListBoxItem>Royal</ListBoxItem>
-                        <ListBoxItem>Vanilla</ListBoxItem>
-                    </ListBox>
-                </StackPanel>
-                <Image Grid.Column="0" Margin="8,0,208,0" Source="/kofi.png" Height="37.92" />
-                <Button x:Name="KofiLink" Click="KofiLink_Click" Margin="8,0,208,0" Height="37.92" Opacity="0" Cursor="Hand"/>
+                <Image Grid.Column="2" Margin="208,0,28,0" Source="/kofi.png" Height="37.92" />
+                <Button Grid.Column="2" x:Name="KofiLink" Click="KofiLink_Click" Margin="208,0,28,0" Height="37.92" Opacity="0" Cursor="Hand"/>
             </Grid>
             <Grid Margin="0 15 0 0">
                 <Grid.ColumnDefinitions>
@@ -126,17 +119,30 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="3*" />
                         </Grid.ColumnDefinitions>
-                        <!--Shop ID-->
+                        <!--Banner ID-->
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Shop ID" />
-                            <TextBox x:Name="ShopIDTextBox" IsReadOnly ="True" Margin="0 0 15 0" Background="#202020" Foreground="#e6e6e6" Height="21.96"/>
+                            <TextBlock Text="Banner ID" />
+                            <TextBox x:Name="BannerIDTextBox" TextChanged="BannerIDTextBox_TextChanged" PreviewTextInput="BannerIdValidationTextBox" Margin="0 0 15 0" Background="#2a2a2a" Foreground="#e6e6e6" Height="21.96"/>
                         </StackPanel>
 
-                        <!--Number of Items in shop-->
+                        <!--Hide Name Tag-->
                         <StackPanel Grid.Column="1">
-                            <TextBlock Text="Number of Items"/>
-                            <TextBox x:Name="NumOfItemsTextBox" IsReadOnly="True" Margin="0 0 15 0" Background="#202020" Foreground="#e6e6e6" Height="21.96" />
+                            <TextBlock Text="Hide Nametag" Margin="0 0 15 0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <CheckBox x:Name="HideNameTagCheckBox" Checked="HideNameTagCheckBox_Checked" Unchecked="HideNameTagCheckBox_Checked" Margin="0 0 15 0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!--Shop Mode-->
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Shop Mode" />
+                            <ComboBox x:Name="ShopModeComboBox" SelectionChanged="ShopModeComboBox_SelectionChanged" Margin="0 0 15 0" Style="{DynamicResource DarkComboBox}" Background="#2a2a2a" Foreground="#e6e6e6" Height="21.96">
+                                <ComboBoxItem>Banner_Yen_Enableback</ComboBoxItem>
+                                <ComboBoxItem>Shared_Points_Enableback</ComboBoxItem>
+                                <ComboBoxItem>Shared_Casino_Enableback</ComboBoxItem>
+                                <ComboBoxItem>Shared_Yen_Enableback</ComboBoxItem>
+                                <ComboBoxItem>Shared_Yen_Disableback</ComboBoxItem>
+                            </ComboBox>
                         </StackPanel>
                     </Grid>
 
@@ -263,7 +269,7 @@
                         <!--Unlimited Quantity Checkbox-->
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Unlimited Quantity" HorizontalAlignment="Center"/>
-                            <CheckBox x:Name="UnlimitedQuantityCheckBox" Unchecked="UnlimitedQuantity_Checked" Checked="UnlimitedQuantity_Checked" Background="#303030" Foreground="#e6e6e6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <CheckBox x:Name="UnlimitedQuantityCheckBox" Unchecked="UnlimitedQuantity_Checked" Checked="UnlimitedQuantity_Checked" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </StackPanel>
 
                         <!--Quantity-->
@@ -314,28 +320,27 @@
                         </StackPanel>
                     </Grid>
 
-                    <StackPanel Grid.Row="6" Margin="0 0" Width="384" Height="21.96" HorizontalAlignment="Center">
-                        <Button x:Name="SaveButton" Click="SaveButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Save Unsaved Changes"/>
-                    </StackPanel>
-
-                    <Grid Grid.Row="7" Margin="0 0" Width="384" Height="21.96"  HorizontalAlignment="Center">
+                    <Grid Grid.Row="6" Margin="0 0" Width="384" Height="21.96" HorizontalAlignment="Center">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0">
-                            <Button Click="ResetButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Revert Unsaved Changes"/>
+                            <Button x:Name="AddNewShopButton" Click="AddNewShopButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Add New Shop"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="1">
-                            <Button x:Name="ResetAllButton" Click="ResetAllButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Revert to Original"/>
+                            <Button x:Name="RemoveShopButton" Click="RemoveShopButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Remove Shop"/>
                         </StackPanel>
                     </Grid>
 
+                    <StackPanel Grid.Row="7" Margin="0 0" Width="384" Height="21.96"  HorizontalAlignment="Center">
+                        <Button Click="ResetButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Revert Unsaved Changes"/>
+                    </StackPanel>
+
                 </Grid>
             </Grid>
-            <TextBox x:Name="MessageTextBox" Margin="20 20" FontSize="16" VerticalAlignment="Bottom" IsReadOnly="True" Background="#202020" Foreground="#fff" />
         </StackPanel>
     </Border>
 </Window>

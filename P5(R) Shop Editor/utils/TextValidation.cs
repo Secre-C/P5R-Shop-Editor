@@ -27,5 +27,10 @@ namespace Shop_Editor
             var monthIndex = combo.SelectedIndex;
             return int.TryParse(str, out int i) && i >= 1 && i <= dayArray[monthIndex];
         }
+
+        internal static bool IsBannerValid(string str)
+        {
+            return int.TryParse(str, out int i) && i >= 0 && i <= 99;
+        }
     }
 }

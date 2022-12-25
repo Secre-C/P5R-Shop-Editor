@@ -32,8 +32,7 @@ namespace ShopLibrary
 
         public void Write(BinaryObjectWriter writer, Shop shop)
         {
-            CreateEndEntry(out var endEntry);
-            shop.Items.Add(endEntry);
+            shop.Items.Add(ShopItem.CreateEndEntry());
 
             var asSpan = CollectionsMarshal.AsSpan(shop.Items);
 
@@ -41,18 +40,6 @@ namespace ShopLibrary
             {
                 item.Write(writer, item);
             }
-        }
-
-        public void CreateEndEntry(out ShopItem endShopItem)
-        {
-            endShopItem = new();
-            endShopItem.GenerateEndEntry(ref endShopItem);
-        }
-
-        public void CreateDummyEntry(out ShopItem endShopItem)
-        {
-            endShopItem = new();
-            endShopItem.GenerateDummyEntry(ref endShopItem);
         }
     }
 }

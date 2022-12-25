@@ -16,8 +16,10 @@ namespace ShopLibrary
         public List<ShopNames> ShopNames{get; set; }
         public byte[] EndOfFile { get; set; }
 
-        public void Read(string shopNameFilePath, out ShopNameFile shopNameFileModel)
+        public ShopNameFile Read(string shopNameFilePath)
         {
+            ShopNameFile shopNameFileModel = new();
+
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             var reader = new BinaryObjectReader(shopNameFilePath, Endianness.Big, Encoding.GetEncoding(932));
 
@@ -32,7 +34,7 @@ namespace ShopLibrary
 
             EndOfFile = reader.ReadArray<byte>((int)(FtdHeader.FileSize - reader.Position));
 
-            shopNameFileModel = this;
+            return this;
         }
 
         public void Write(string newShopNameFile, ShopNameFile shopNameFile)
@@ -57,6 +59,20 @@ namespace ShopLibrary
         public void Add(ref ShopNameFile shopNameFileModel, int insertIndex, int copyIndex)
         {
             shopNameFileModel.ShopNames.Insert(insertIndex, ShopNames[copyIndex]);
+            FtdList.EntryCount += 1;
+            FtdList.DataSize += (uint)FtdList.EntrySize;
+            FtdHeader.FileSize += (uint)FtdList.EntrySize;
+
+            shopNameFileModel = this;
+        }
+
+        public void Add(ref ShopNameFile shopNameFileModel, int insertIndex)
+        {
+            ShopNames newShopName = new();
+            newShopName.Name = "New Shop";
+
+            shopNameFileModel.ShopNames.Insert(insertIndex, newShopName);
+
             FtdList.EntryCount += 1;
             FtdList.DataSize += (uint)FtdList.EntrySize;
             FtdHeader.FileSize += (uint)FtdList.EntrySize;
