@@ -221,11 +221,11 @@ namespace Shop_Editor
 
             if (SelectedItem >= 0)
             {
-                ShopItemFile.AddItem(ref shopItemFile, SelectedShop, shopItemQuantity, SelectedItem);
+                ShopItemFile.AddItem(SelectedShop, shopItemQuantity, SelectedItem);
             }
             else
             {
-                ShopItemFile.AddItem(ref shopItemFile, SelectedShop, shopItemQuantity);
+                ShopItemFile.AddItem(SelectedShop, shopItemQuantity);
             }
 
             ShopItemFile = shopItemFile;
@@ -245,7 +245,7 @@ namespace Shop_Editor
 
             var shopItemFile = ShopItemFile;
 
-            ShopItemFile.RemoveItem(ref shopItemFile, SelectedShop, SelectedItem);
+            ShopItemFile.RemoveItem(SelectedShop, SelectedItem);
             ShopItemFile = shopItemFile;
 
             PopulateShopItemComboBox();
@@ -268,9 +268,9 @@ namespace Shop_Editor
             var newShopName = new ShopNames();
             newShopName.Name = "New Shop";
 
-            ShopItemFile.AddBlankShop(ref shopItemFile, ShopItemFile.Shops.Count);
-            ShopNameFile.Add(ref shopNameFile, ShopNameFile.ShopNames.Count);
-            ShopDataFile.Add(ref shopDataFile, ShopDataFile.ShopData.Count);
+            ShopItemFile.AddBlankShop(ShopItemFile.Shops.Count);
+            ShopNameFile.Add(ShopNameFile.ShopNames.Count);
+            ShopDataFile.Add(ShopDataFile.ShopData.Count);
 
             ShopItemFile = shopItemFile;
             ShopNameFile = shopNameFile;
@@ -292,9 +292,9 @@ namespace Shop_Editor
             var shopNameFile = ShopNameFile;
             var shopDataFile = ShopDataFile;
 
-            ShopItemFile.RemoveShop(ref shopItemFile, selectedShop);
-            ShopNameFile.Remove(ref shopNameFile, selectedShop);
-            shopDataFile.Remove(ref shopDataFile, selectedShop);
+            ShopItemFile.RemoveShop(selectedShop);
+            ShopNameFile.Remove(selectedShop);
+            shopDataFile.Remove(selectedShop);
 
             ShopItemFile = shopItemFile;
             ShopNameFile = shopNameFile;

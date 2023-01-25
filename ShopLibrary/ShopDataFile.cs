@@ -56,17 +56,15 @@ namespace ShopLibrary
             }
         }
 
-        public void Add(ref ShopDataFile shopDataFileModel, int insertIndex, int copyIndex)
+        public void Add(int insertIndex, int copyIndex)
         {
-            shopDataFileModel.ShopData.Insert(insertIndex, ShopData[copyIndex]);
+            ShopData.Insert(insertIndex, ShopData[copyIndex]);
             FtdList.EntryCount += 1;
             FtdList.DataSize += (uint)FtdList.EntrySize;
             FtdHeader.FileSize += (uint)FtdList.EntrySize;
-
-            shopDataFileModel = this;
         }
 
-        public void Add(ref ShopDataFile shopDataFileModel, int insertIndex)
+        public void Add(int insertIndex)
         {
             var genericShopData = new ShopData();
 
@@ -74,22 +72,18 @@ namespace ShopLibrary
             genericShopData.HideNametag = false;
             genericShopData.ShopMode = 0;
 
-            shopDataFileModel.ShopData.Insert(insertIndex, genericShopData);
+            ShopData.Insert(insertIndex, genericShopData);
             FtdList.EntryCount += 1;
             FtdList.DataSize += (uint)FtdList.EntrySize;
             FtdHeader.FileSize += (uint)FtdList.EntrySize;
-
-            shopDataFileModel = this;
         }
 
-        public void Remove(ref ShopDataFile shopDataFileModel, int removeIndex)
+        public void Remove(int removeIndex)
         {
-            shopDataFileModel.ShopData.Remove(shopDataFileModel.ShopData[removeIndex]);
+            ShopData.Remove(ShopData[removeIndex]);
             FtdList.EntryCount -= 1;
             FtdList.DataSize -= (uint)FtdList.EntrySize;
             FtdHeader.FileSize -= (uint)FtdList.EntrySize;
-
-            shopDataFileModel = this;
         }
     }
 }

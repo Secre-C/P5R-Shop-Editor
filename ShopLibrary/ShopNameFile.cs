@@ -56,38 +56,32 @@ namespace ShopLibrary
             }
         }
 
-        public void Add(ref ShopNameFile shopNameFileModel, int insertIndex, int copyIndex)
+        public void Add(int insertIndex, int copyIndex)
         {
-            shopNameFileModel.ShopNames.Insert(insertIndex, ShopNames[copyIndex]);
+            ShopNames.Insert(insertIndex, ShopNames[copyIndex]);
             FtdList.EntryCount += 1;
             FtdList.DataSize += (uint)FtdList.EntrySize;
             FtdHeader.FileSize += (uint)FtdList.EntrySize;
-
-            shopNameFileModel = this;
         }
 
-        public void Add(ref ShopNameFile shopNameFileModel, int insertIndex)
+        public void Add(int insertIndex)
         {
             ShopNames newShopName = new();
             newShopName.Name = "New Shop";
 
-            shopNameFileModel.ShopNames.Insert(insertIndex, newShopName);
+            ShopNames.Insert(insertIndex, newShopName);
 
             FtdList.EntryCount += 1;
             FtdList.DataSize += (uint)FtdList.EntrySize;
             FtdHeader.FileSize += (uint)FtdList.EntrySize;
-
-            shopNameFileModel = this;
         }
 
-        public void Remove(ref ShopNameFile shopNameFileModel, int removeIndex)
+        public void Remove(int removeIndex)
         {
-            shopNameFileModel.ShopNames.Remove(shopNameFileModel.ShopNames[removeIndex]);
+            ShopNames.Remove(ShopNames[removeIndex]);
             FtdList.EntryCount -= 1;
             FtdList.DataSize -= (uint)FtdList.EntrySize;
             FtdHeader.FileSize -= (uint)FtdList.EntrySize;
-
-            shopNameFileModel = this;
         }
     }
 }
