@@ -142,7 +142,21 @@ namespace ShopLibrary
 
             return dummyShopEntry;
         }
+
+        public ShopItem Clone()
+        {
+            ShopItem itemClone = (ShopItem)MemberwiseClone();
+
+            itemClone.ItemId = new Item();
+            itemClone.ItemId.data = ItemId.data;
+
+            itemClone.Bitflag = new Bitflag();
+            itemClone.Bitflag.data = Bitflag.data;
+
+            return itemClone;
+        }
     }
+
     public class Item
     {
         internal ushort data { get; set; }

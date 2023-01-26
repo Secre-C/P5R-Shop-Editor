@@ -58,7 +58,7 @@ namespace ShopLibrary
 
         public void AddItem(int shopId, int itemInsertIndex, int itemCopyIndex)
         {
-            Shops[shopId].Items.Insert(itemInsertIndex, Shops[shopId].Items[itemCopyIndex]);
+            Shops[shopId].Items.Insert(itemInsertIndex, Shops[shopId].Items[itemCopyIndex].Clone());
             FtdList.EntryCount += 1;
             FtdList.DataSize += (uint)FtdList.EntrySize;
             FtdHeader.FileSize += (uint)FtdList.EntrySize;

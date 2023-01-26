@@ -29,6 +29,7 @@ namespace Shop_Editor
         public int SelectedShop { get; set; } = -1;
         public int SelectedItem { get; set; } = -1;
         public string ShopFileDirectory { get; private set; }
+        public string TempDirectory { get; private set; }
         public bool IsShopLoaded { get; private set; }
 
         public MainWindow()
@@ -42,9 +43,9 @@ namespace Shop_Editor
         {
             DebugLog("StartupPopulate");
 
-            ShopItemFile = new ShopItemFile().Read($"{inputDir}/fclPublicShopItemTable.ftd");
-            ShopNameFile = new ShopNameFile().Read($"{inputDir}/fclPublicShopName.ftd");
-            ShopDataFile = new ShopDataFile().Read($"{inputDir}/fclPublicShopDataTable.ftd");
+            ShopItemFile = new ShopItemFile().Read($"{TempDirectory}\\fclPublicShopItemTable.ftd");
+            ShopNameFile = new ShopNameFile().Read($"{TempDirectory}\\fclPublicShopName.ftd");
+            ShopDataFile = new ShopDataFile().Read($"{TempDirectory}\\fclPublicShopDataTable.ftd");
 
             PopulateShopNameComboBox();
             ClearAllFields();
@@ -157,13 +158,17 @@ namespace Shop_Editor
             DebugLog("MenuItem_Open_Click");
 
             var saveDialog = new CommonOpenFileDialog();
-            saveDialog.IsFolderPicker = true;
-            saveDialog.Title = "Select Directory with files.";
+            //saveDialog.IsFolderPicker = true;
+            saveDialog.Title = "Select your INIT/FCLTABLE.BIN file";
 
             if (saveDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 ShopFileDirectory = saveDialog.FileName;
-                StartupPopulate(ShopFileDirectory);
+
+                utils.PackUnpack.Unpack(ShopFileDirectory);
+
+                TempDirectory = $"{Path.GetTempPath()}FCLTABLE";
+                StartupPopulate(TempDirectory);
 
                 ShopSelectionComboBox.SelectedIndex = 0;
                 PopulateShopItemComboBox();
@@ -179,16 +184,19 @@ namespace Shop_Editor
                 return;
 
             var saveDialog = new CommonOpenFileDialog();
-            saveDialog.IsFolderPicker = true;
             saveDialog.Title = "Select Directory to save files to.";
 
             if (saveDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                ShopItemFile.Write($"{saveDialog.FileName}/fclPublicShopItemTable.ftd", ShopItemFile);
-                ShopNameFile.Write($"{saveDialog.FileName}/fclPublicShopName.ftd", ShopNameFile);
-                ShopDataFile.Write($"{saveDialog.FileName}/fclPublicShopDataTable.ftd", ShopDataFile);
+                ShopItemFile.Write($"{TempDirectory}/fclPublicShopItemTable.ftd", ShopItemFile);
+                ShopNameFile.Write($"{TempDirectory}/fclPublicShopName.ftd", ShopNameFile);
+                ShopDataFile.Write($"{TempDirectory}/fclPublicShopDataTable.ftd", ShopDataFile);
 
-                StartupPopulate(saveDialog.FileName);
+                utils.PackUnpack.Pack(ShopFileDirectory, Path.GetTempPath() + "FCLTABLE.BIN");
+
+                File.Copy(Path.GetTempPath() + "FCLTABLE.BIN", saveDialog.FileName, true);
+
+                StartupPopulate(TempDirectory);
                 ShopFileDirectory = saveDialog.FileName;
             }
         }
@@ -199,9 +207,9 @@ namespace Shop_Editor
             if (!IsShopLoaded)
                 return;
 
-            ShopItemFile = new ShopItemFile().Read($"{ShopFileDirectory}/fclPublicShopItemTable.ftd");
-            ShopNameFile = new ShopNameFile().Read($"{ShopFileDirectory}/fclPublicShopName.ftd");
-            ShopDataFile = new ShopDataFile().Read($"{ShopFileDirectory}/fclPublicShopDataTable.ftd");
+            ShopItemFile = new ShopItemFile().Read($"{TempDirectory}\\fclPublicShopItemTable.ftd");
+            ShopNameFile = new ShopNameFile().Read($"{TempDirectory}\\fclPublicShopName.ftd");
+            ShopDataFile = new ShopDataFile().Read($"{TempDirectory}\\fclPublicShopDataTable.ftd");
 
             PopulateShopItemComboBox();
 
