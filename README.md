@@ -3,7 +3,7 @@ A GUI tool for editing shops in Persona 5 (Royal).
 
 This is a tool for editing all of the regular shops in P5/P5R (not including takemi or Iwai).
 
-[.Net 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) is required to run this program.
+[.Net 7.0](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) is required to run this program.
 
 I apologize for the short and lackluster readme, though I believe that usage of this program is pretty self explanatory outside of what I go over below.
 ## First Setup
