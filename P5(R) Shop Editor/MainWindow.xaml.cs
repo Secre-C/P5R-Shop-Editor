@@ -212,8 +212,8 @@ namespace Shop_Editor
             ShopDataFile = new ShopDataFile().Read($"{TempDirectory}\\fclPublicShopDataTable.ftd");
 
             PopulateShopItemComboBox();
-
             PopulateItemValues();
+            PopulateShopData();
         }
         private void AddNewItemButton_Click(object sender, RoutedEventArgs e)
         {
@@ -347,7 +347,14 @@ namespace Shop_Editor
 
             DebugLog("BannerIDTextBox_TextChanged");
 
-            ShopDataFile.ShopData[SelectedShop].BannerId = Convert.ToInt16(((TextBox)sender).Text);
+            try
+            {
+                ShopDataFile.ShopData[SelectedShop].BannerId = Convert.ToInt16(((TextBox)sender).Text);
+            }
+            catch
+            {
+                DebugLog("Invalid number");
+            }
         }
         private void HideNameTagCheckBox_Checked(object sender, RoutedEventArgs e)
         {
@@ -409,10 +416,6 @@ namespace Shop_Editor
             DebugLog($"ItemIDCombobox Index {ItemIDComboBox.SelectedIndex}");
 
             PopulateShopItemComboBox();
-        }
-        private void GameVersionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            return;
         }
         private void StartMonthBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {

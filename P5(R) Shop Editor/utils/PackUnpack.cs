@@ -21,8 +21,10 @@ namespace Shop_Editor.utils
 
             File.Copy(path, fclPath, true);
             string args = $"\"{command}\" \"{fclPath}\" \"{tempPath}\"";
+
             pakpack.StartInfo.FileName = pakPath;
             pakpack.StartInfo.Arguments = args;
+            pakpack.StartInfo.UseShellExecute = false;
 
             pakpack.Start();
             pakpack.WaitForExit();
@@ -42,6 +44,7 @@ namespace Shop_Editor.utils
 
             pakpack.StartInfo.FileName = pakPath;
             pakpack.StartInfo.Arguments = args;
+            pakpack.StartInfo.UseShellExecute = false;
 
             pakpack.Start();
             pakpack.WaitForExit();
