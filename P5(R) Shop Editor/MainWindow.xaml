@@ -319,7 +319,7 @@
                             <Button x:Name="RemoveItemButton" Click="RemoveItemButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Remove Item"/>
                         </StackPanel>
                     </Grid>
-
+                    <!--"
                     <Grid Grid.Row="6" Margin="0 0" Width="384" Height="21.96" HorizontalAlignment="Center">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -333,9 +333,9 @@
                         <StackPanel Grid.Column="1">
                             <Button x:Name="RemoveShopButton" Click="RemoveShopButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Remove Shop"/>
                         </StackPanel>
-                    </Grid>
+                    </Grid> -->
 
-                    <StackPanel Grid.Row="7" Margin="0 0" Width="384" Height="21.96"  HorizontalAlignment="Center">
+                    <StackPanel Grid.Row="6" Margin="0 0" Width="384" Height="21.96"  HorizontalAlignment="Center">
                         <Button Click="ResetButton_Click" Background="#2a2a2a" Foreground="#e6e6e6" Margin="0 0 15 0" Content="Revert Unsaved Changes"/>
                     </StackPanel>
 
